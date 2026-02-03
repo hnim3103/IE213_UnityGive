@@ -2,7 +2,7 @@ import Campaign from "../models/Campaign.js";
 
 export const getAllCampaigns = async (req, res) => {
   try {
-    const campaigns = await Campaign.find();
+    const campaigns = await Campaign.find().sort({createdAt: -1});
     res.status(200).json(campaigns);
   } catch (error) {
     console.error("Failed to execute getAllCampaigns", error);
