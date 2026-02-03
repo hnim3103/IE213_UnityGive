@@ -19,9 +19,9 @@ const Navbar = () => {
   return (
     <div className="navbar flex justify-around p-2 shadow-[0_1px_3px_-2px_black] bg-[#fefefe]">
       <Link style={{textDecoration: 'none'}} to = '/'>
-        <div className="nav-logo flex items-center gap-0.5">
-            <img src={white_logo} className='w-12 border rounded-[14px] bg-primary p-2'/>
-            <span className="text-2xl font-bold">Unity<span className="text-primary">Give</span></span>
+        <div onClick={() => setMenu("homepage")} className="nav-logo flex items-center gap-0.5">
+          <img src={white_logo} className='w-12 border rounded-[14px] bg-primary p-2'/>
+          <span className="text-2xl font-bold">Unity<span className="text-primary">Give</span></span>
         </div>
       </Link>
 
@@ -30,10 +30,10 @@ const Navbar = () => {
           <li 
             key={item.id} 
             onClick={() => setMenu(item.id)}
-            className={`cursor-pointer h-full flex flex-col justify-center transition-colors duration-200
+            className={`cursor-pointer h-full flex flex-col justify-center transition-colors duration-200 
               ${menu === item.id 
                 ? "border-b-2 border-primary text-primary"   // Active Styles 
-                : "border-none hover:text-primary" // Inactive Styles 
+                : "border-none text-slate-600 hover:text-primary" // Inactive Styles 
               }`}
           >
             <Link to={item.path}>{item.label}</Link>

@@ -1,5 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Instrument+Serif:ital@0;1&amp;display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap");
+
 @import "tailwindcss";
 @import "tw-animate-css";
+
 
 @custom-variant dark (&:is(.dark *));
 
@@ -44,6 +48,11 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-primary: #0d9488;
   --color-coral: #f47174;
+}
+
+@theme{
+  --font-plus-jakarta: "Plus Jakarta Sans", "sans-serif";
+  --font-instrument: "Instrument Serif", "serif";
 }
 
 :root {
@@ -113,6 +122,16 @@
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+body{
+  font-family: var(--font-plus-jakarta);
+  -webkit-font-smoothing: antialised;
+}
+
+.hero-gradient {
+  background: linear-gradient(to right, rgba(13, 148, 136, 0.95), rgba(15, 23, 42, 0.75));
+  opacity: 0.8;
 }
 
 @layer base {

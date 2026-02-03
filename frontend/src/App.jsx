@@ -7,6 +7,7 @@ import FAQs from './pages/FAQs';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 
 function App() {
@@ -47,7 +48,7 @@ function App() {
             element={<NotFound/>}
           />
         </Routes>
-
+        <Footer/>
       </BrowserRouter>
     </>
   )
