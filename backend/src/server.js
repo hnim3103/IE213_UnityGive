@@ -3,6 +3,7 @@ import campaignsRoute from "./routes/campaignsRouters.js";
 import organizationsRoute from "./routes/organizationsRouters.js";
 import { connectDB } from "./config/db.js";
 import dotenv from "dotenv";
+import cors from'cors'
 
 dotenv.config();
 
@@ -10,6 +11,7 @@ const PORT = process.env.PORT || 5000
 
 const app = express();
 
+app.use(cors('http://localhost:3000'))
 app.use(express.json());
 
 app.use("/api/campaigns", campaignsRoute);

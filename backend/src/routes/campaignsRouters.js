@@ -1,5 +1,6 @@
 import express from "express"
 import {  getAllCampaigns, 
+          getCampaignByID,
           createCampaign, 
           updateCampaign,
           deleteCampaign,    
@@ -8,6 +9,8 @@ import {  getAllCampaigns,
 const router = express.Router();
 
 router.get("/", getAllCampaigns);
+
+router.get("/:id", getCampaignByID);
 
 router.post("/", createCampaign);
 

@@ -10,6 +10,18 @@ export const getAllCampaigns = async (req, res) => {
   }
 };
 
+export const getCampaignByID = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+    res.status(200).json(campaign);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching campaign" });
+  }
+};
+
 export const createCampaign = async (req, res) => {
   try {
     const campaign = new Campaign(req.body);
