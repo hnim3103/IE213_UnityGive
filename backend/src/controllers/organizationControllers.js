@@ -2,7 +2,7 @@ import Organization from "../models/Organization.js";
 
 export const getAllOrganizations = async (req, res) => {
   try {
-    const organizations = await Organization.find();
+    const organizations = await Organization.find().sort({createdAt: -1});
     res.status(200).json(organizations);
   } catch (error) {
     console.error("Failed to execute getAllOrganizations", error);
