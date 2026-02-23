@@ -93,7 +93,7 @@ The frontend will run at:
 ```
 http://localhost:3000
 ```
-
+---
 ## 🎨 UI & Styling
 
 - Tailwind CSS for utility-first styling
@@ -105,7 +105,7 @@ http://localhost:3000
 - Fully responsive design
 
 - Modern card-based campaign layout
-
+---
 ## 📦 Scripts Summary
 ### Backend
 ```
@@ -115,6 +115,7 @@ npm start
 ```
 npm run dev
 ```
+---
 ## 🌱 Future Improvements
 
 - Authentication & Authorization (JWT)
