@@ -1,33 +1,32 @@
 import mongoose from "mongoose";
 
-const OrganizationSchema = new mongoose.Schema({
+const organizationSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true, //
-    trim: true //auto removing space
-  },
-
-  logo_url: {
-    type: String,
     required: true
-  }, 
-
-  description: {
-    type: String
   },
+
+  description: String,
+
+  licenseNumber: String,
 
   website: String,
 
-  email: String,
-  //Trusted organization
-  is_verified: {
+  adminUserId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+
+  isVerified: {
     type: Boolean,
     default: false
   },
+
+  logo: String
+
 }, {
-    //Auto add created and updated time
-    timestamps: true,
+  timestamps: { createdAt: true, updatedAt: false }
 });
 
-const Organization = mongoose.model("Organization", OrganizationSchema);
-export default Organization;
+export default mongoose.model("Organization", organizationSchema);

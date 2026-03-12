@@ -1,58 +1,87 @@
 import mongoose from "mongoose";
 
 const campaignSchema = new mongoose.Schema({
-  organization: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Organization',
-    required: true
-  },
-
   title: {
     type: String,
     required: true,
-    index: true //Using index to search faster
+    index: true
   },
 
-  type: {
-    type: String,
-    enum: ['CHILDREN', 'COMMUNITY', "ENVIRONMENT", "WILD_ANIMAL", "MEDICAL", "EDUCATION", "DIFFICULT_CIRCUMSTANCES", "ELDERLY_LIVING_ALONE", "OTHER"],
-    default: "OTHER"
-  },
-
-  cover_image_url: {
+  description: {
     type: String,
     required: true
   },
 
-  story: {
-    type: String,
-    required: true
-  },
-
-  target_amount: {
+  goalAmount: {
     type: Number,
     required: true,
     min: 0
   },
 
-  current_amount: {
+  currentAmount: {
     type: Number,
-    default: 0, 
+    default: 0,
     min: 0
+  },
+
+  contractAddress: {
+    type: String
+  },
+
+  category: {
+    type: String,
+    enum: [
+      "CHILDREN",
+      "COMMUNITY",
+      "ENVIRONMENT",
+      "WILD_ANIMAL",
+      "MEDICAL",
+      "EDUCATION",
+      "DIFFICULT_CIRCUMSTANCES",
+      "ELDERLY_LIVING_ALONE",
+      "OTHER"
+    ],
+    default: "OTHER"
   },
 
   status: {
     type: String,
-    enum: ['DRAFT', 'ACTIVE', 'PAUSED', 'COMPLETED', 'CLOSED'],
-    default: 'DRAFT'
+    enum: ["DRAFT", "ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"],
+    default: "DRAFT"
   },
 
-  start_date: Date,
-  
-  end_date: Date,
+  image: {
+    type: String,
+    required: true
+  },
+
+  startDate: Date,
+
+  endDate: Date,
+
+  orgId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Organization",
+    required: true
+  },
+
+  creatorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+
+  ambassadors: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }
+  ]
+
 }, {
-  timestamps: true,
-})
+  timestamps: true
+});
 
 const Campaign = mongoose.model("Campaign", campaignSchema);
+
 export default Campaign;
