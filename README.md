@@ -1,131 +1,104 @@
-# UnityGive
+# UnityGive (Web3 V2)
 
-UnityGive is a full-stack crowdfunding platform built with the **MERN stack** (MongoDB, Express, React, Node.js). It allows organizations to create campaigns and users to explore and support active fundraising projects.
+UnityGive is a state-of-the-art decentralized crowdfunding platform. It empowers verified organizations to create fundraising campaigns while protecting donors through a **DAO-governed, Milestone-based, Multi-Sig Smart Contract** architecture built on Ethereum.
 
-The project uses:
+By leveraging Web3 technologies, UnityGive ensures that funds are no longer released blindly. Organizations must provide **IPFS Proof of Impact**, and a council of trusted members must cryptographically vote to approve fund releases at every milestone—preventing "rug pulls" and ensuring maximum transparency.
 
-- **MongoDB + Mongoose** for database management  
-- **Express.js** for the backend API  
-- **React (Vite)** for the frontend  
-- **Tailwind CSS** for styling  
-- **shadcn/ui** for reusable UI components  
+---
+
+## 🌟 Key Features
+- **Milestone Fund Disbursement:** Campaigns are split into financial phases. Funds are strictly released per milestone.
+- **DAO Multi-Sig Voting:** A custom council (e.g., top donors or auditors) must vote on-chain to approve each milestone.
+- **IPFS Proof of Impact:** Organizations must submit verifiable proof of work (images, documents) stored immutably on IPFS to request funding.
+- **JWT Secure Authentication:** Backend API is fully protected via strict Bearer Token verification and Role-Based Access Control (Admin, Donor, Organization).
+- **Interactive API Docs:** Comprehensive Swagger UI documentation integration.
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 UnityGive/
 │
-├── backend/ # Express + MongoDB API
-├── frontend/ # React + Vite client
-└── README.md
+├── backend/          # Node.js/Express API & MongoDB Models
+├── frontend/         # React + Vite Client (Tailwind & shadcn/ui)
+└── smart-contracts/  # Solidity, Hardhat, Ethers.js, and Typechain
 ```
+
 ---
 
 ## 🚀 Tech Stack
 
-### Backend
-- Node.js
-- Express.js
-- MongoDB
-- Mongoose
-- dotenv
-- cors
+### Smart Contracts (Web3)
+- **Solidity** (Smart Contract Logic)
+- **Hardhat** (Development Environment & Testing Suite)
+- **Ethers.js v6** (Blockchain Interaction)
+- **Typechain** (TypeScript bindings for smart contracts)
+- **Chai** (Smart Contract Unit Testing)
+
+### Backend (Web2)
+- **Node.js & Express.js**
+- **MongoDB & Mongoose** (Complex Schema Referencing)
+- **JWT (JSON Web Tokens)** & **Bcrypt** (Auth & Security)
+- **Swagger UI** (API Documentation)
+- **dotenv & cors**
 
 ### Frontend
-- React (with Vite)
-- React Router
-- Axios
-- Tailwind CSS
-- shadcn/ui
-- Radix UI
-- Sonner (toasts)
+- **React (Vite)**
+- **Tailwind CSS & shadcn/ui**
+- **React Router & Axios**
+- **ethers.js** (Web3 Provider Integration)
 
 ---
 
-## ⚙️ Installation
+## ⚙️ Installation & Setup
 
-### Clone the repository
+### 1. Smart Contracts Setup
 
+Navigate to the smart contracts directory to compile the ABI and run the test suite:
+```bash
+cd smart-contracts
+npm install
+npx hardhat compile
+npx hardhat test      # Verify Multi-Sig & Milestone logic passes
 ```
-git clone https://github.com/hnim3103/IE213_UnityGive.git
-cd UnityGive
-```
-### Backend Setup
+*To deploy locally:* `npx hardhat node` followed by `npx hardhat run scripts/deploy.js --network localhost`
 
-Navigate to the backend folder:
-```
+### 2. Backend Setup
+
+Navigate to the backend directory to spin up the API:
+```bash
 cd backend
-```
-Install dependencies:
-```
 npm install
 ```
-Create a .env file inside the backend folder:
-```
+Create a `.env` file in the `backend/` folder:
+```env
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_super_secret_key
+JWT_EXPIRES_IN=7d
 ```
-Run the backend server:
+Run the development server:
+```bash
+npm run dev
 ```
-npm start
-```
-The backend will run at:
-```
-http://localhost:5000 #default
-```
-### Frontend Setup
+* The API will run at: `http://localhost:5000`
+* Explore the interactive API Docs at: `http://localhost:5000/docs`
 
-Open a new terminal and navigate to the frontend folder:
-```
+### 3. Frontend Setup
+
+Navigate to the frontend directory:
+```bash
 cd frontend
-```
-Install dependencies:
-```
 npm install
-```
-Start the development server:
-```
 npm run dev
 ```
-The frontend will run at:
-```
-http://localhost:3000
-```
+* The frontend will run at: `http://localhost:3000`
+
 ---
-## 🎨 UI & Styling
 
-- Tailwind CSS for utility-first styling
-
-- shadcn/ui components built on top of Radix UI
-
-- Custom color palette (teal & coral)
-
-- Fully responsive design
-
-- Modern card-based campaign layout
----
-## 📦 Scripts Summary
-### Backend
-```
-npm start
-```
-### Frontend
-```
-npm run dev
-```
----
-## 🌱 Future Improvements
-
-- Authentication & Authorization (JWT)
-
-- Payment integration
-
-- Campaign detail page
-
-- Admin dashboard
-
-- Search & filtering system
-
-- Deployment (Render / Vercel / Railway)
+## 🌱 Future Roadmap
+- [ ] Admin Dashboard UI for KYC/KYB approval
+- [ ] Wallet Integration (MetaMask, WalletConnect) on the Frontend
+- [ ] Smart Contract Deployment to an L2 testnet (e.g., Arbitrum Sepolia, Base Goerli) for low-gas voting.
+- [ ] Production Deployment (Render / Vercel)
