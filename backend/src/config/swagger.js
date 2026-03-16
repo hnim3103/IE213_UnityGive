@@ -1,5 +1,6 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 
+
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -8,9 +9,6 @@ const options = {
       version: '1.0.0',
       description: 'REST API documentation for UnityGive fundraising platform',
     },
-    servers: [
-      { url: 'http://localhost:5000', description: 'Development server' }
-    ],
     components: {
       schemas: {
         Organization: {
