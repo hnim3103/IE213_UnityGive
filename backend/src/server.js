@@ -7,6 +7,7 @@ import organizationsRoute from "./routes/organizationsRouters.js";
 import donationRoute from "./routes/donationsRouters.js";
 import authRoute from "./routes/authRouters.js";
 import usersRoute from "./routes/userRouters.js";
+import commentRoute from "./routes/commentRouters.js";
 import { connectDB } from "./config/db.js";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
