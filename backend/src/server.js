@@ -24,6 +24,7 @@ app.use("/api/campaigns", campaignsRoute);
 app.use("/api/organizations", organizationsRoute);
 app.use("/api/donations", donationRoute);
 app.use("/api/auth", authRoute);
+app.use("/api/comments", commentRoute);
 app.use("/api/users", usersRoute);
 
 connectDB().then(() => {
