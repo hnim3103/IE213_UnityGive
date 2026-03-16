@@ -3,3 +3,7 @@ node_modules/
 dist/
 .DS_Store
 source_dump.txt
+.agent
+.agents
+.skills-lock.json
+skills-lock.json

@@ -12,21 +12,36 @@ const campaignSchema = new mongoose.Schema({
     required: true
   },
 
-  goalAmount: {
-    type: Number,
-    required: true,
-    min: 0
+  totalGoalAmount: {
+    type: String, // Stored as String to prevent Wei precision loss
+    required: true
   },
 
   currentAmount: {
-    type: Number,
-    default: 0,
-    min: 0
+    type: String, // String for Wei BigInt
+    default: "0"
   },
 
-  contractAddress: {
-    type: String
+  onChainCampaignId: {
+    type: Number
   },
+
+  requiredVotes: {
+    type: Number,
+    default: 1
+  },
+
+  milestones: [{
+    title: String,
+    amount: String, // Wei String
+    ipfsEvidence: String,
+    isApproved: { type: Boolean, default: false },
+    isFunded: { type: Boolean, default: false }
+  }],
+
+  councilMembers: [{
+    type: String // Ethereum addresses
+  }],
 
   category: {
     type: String,
