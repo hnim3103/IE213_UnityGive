@@ -15,9 +15,8 @@ const donationSchema = new mongoose.Schema({
   },
 
   amount: {
-    type: Number,
-    required: true,
-    min: 0
+    type: String, // Wei as string
+    required: true
   },
 
   currency: {

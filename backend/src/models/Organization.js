@@ -23,6 +23,17 @@ const organizationSchema = new mongoose.Schema({
     default: false
   },
 
+  kybStatus: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "pending"
+  },
+
+  orgWalletAddress: {
+    type: String,
+    required: true
+  },
+
   logo: String
 
 }, {
