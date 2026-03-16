@@ -1,49 +1,71 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 /**
- * @title UnityGive
- * @notice Manages fundraising campaigns on-chain.
- *         - Admin registers campaigns (linked to your MongoDB _id)
- *         - Donors send ETH via donate()
- *         - Admin releases funds to org when goal is met
- *         - Admin can cancel a campaign → donors get refunded
+ * @title UnityGive (Multi-Sig & Milestone DAO)
+ * @notice Manages crowdfunding campaigns with milestone-based funding.
+ *         - Admin registers campaigns and sets the multi-sig council
+ *         - Donors send ETH
+ *         - Organizations upload IPFS Proof of Impact for each milestone
+ *         - Council members vote "Yes". If votes >= required threshold, ETH is released.
  */
-contract UnityGive {
+contract UnityGive is ReentrancyGuard {
 
     // ─────────────────────────────────────────────
     //  DATA STRUCTURES
     // ─────────────────────────────────────────────
 
+    struct Milestone {
+        uint256 amount;          // Wei amount to be unlocked for this phase
+        string ipfsEvidence;     // CID to Proof of Impact (uploaded by org)
+        uint256 approvalCount;   // Number of "Yes" votes from council
+        bool isApproved;         // True if votes >= required
+        bool isFunded;           // True if funds successfully transferred to org
+    }
+
     struct Campaign {
-        string  mongoId;          // Your MongoDB campaign _id (links on-chain ↔ off-chain)
-        address payable orgWallet; // Organization's wallet — receives funds when goal is met
-        uint256 goalAmount;       // Target in wei  (1 ETH = 1e18 wei)
-        uint256 currentAmount;    // Total donated so far
-        bool    isActive;         // false = cancelled or completed
-        bool    isFunded;         // true = funds already released to org
+        string mongoId;                
+        address payable orgWallet;      
+        uint256 totalGoalAmount;        
+        uint256 currentAmount;         // Total ETH donated
+        uint256 requiredVotes;         // Multi-Sig threshold (e.g. 3 out of 5)
+        bool isActive;                  
     }
 
     // ─────────────────────────────────────────────
     //  STATE VARIABLES
     // ─────────────────────────────────────────────
 
-    address public admin;   // Deployer — your backend wallet
+    address public admin;
 
-    // campaignId (uint) → Campaign
-    mapping(uint256 => Campaign) public campaigns;
     uint256 public campaignCount;
+    mapping(uint256 => Campaign) public campaigns;
+    
+    // campaignId -> milestone array
+    mapping(uint256 => Milestone[]) public campaignMilestones;
+    
+    // campaignId -> user address -> has role
+    mapping(uint256 => mapping(address => bool)) public isCouncilMember;
+    
+    // campaignId -> milestoneIndex -> council address -> has voted
+    mapping(uint256 => mapping(uint256 => mapping(address => bool))) public hasVoted;
 
-    // campaignId → donor address → amount donated (for refunds)
+    // campaignId -> donor address -> amount donated (for refunds)
     mapping(uint256 => mapping(address => uint256)) public donations;
 
     // ─────────────────────────────────────────────
-    //  EVENTS  (emitted on-chain, your backend listens to these)
+    //  EVENTS
     // ─────────────────────────────────────────────
 
-    event CampaignRegistered(uint256 indexed campaignId, string mongoId, uint256 goalAmount);
+    event CampaignRegistered(uint256 indexed campaignId, string mongoId, uint256 goalAmount, uint256 requiredVotes);
+    event MilestoneAdded(uint256 indexed campaignId, uint256 milestoneIndex, uint256 amount);
     event DonationReceived(uint256 indexed campaignId, address indexed donor, uint256 amount);
-    event FundsReleased(uint256 indexed campaignId, address indexed orgWallet, uint256 amount);
+    event ProofUploaded(uint256 indexed campaignId, uint256 milestoneIndex, string ipfsCID);
+    event Voted(uint256 indexed campaignId, uint256 milestoneIndex, address indexed voter);
+    event MilestoneApproved(uint256 indexed campaignId, uint256 milestoneIndex);
+    event FundsReleased(uint256 indexed campaignId, uint256 milestoneIndex, address indexed orgWallet, uint256 amount);
     event CampaignCancelled(uint256 indexed campaignId);
     event RefundIssued(uint256 indexed campaignId, address indexed donor, uint256 amount);
 
@@ -52,7 +74,17 @@ contract UnityGive {
     // ─────────────────────────────────────────────
 
     modifier onlyAdmin() {
-        require(msg.sender == admin, "Only admin can call this");
+        require(msg.sender == admin, "Only platform admin");
+        _;
+    }
+
+    modifier onlyCouncilMember(uint256 campaignId) {
+        require(isCouncilMember[campaignId][msg.sender], "Not a council member for this campaign");
+        _;
+    }
+
+    modifier onlyOrganization(uint256 campaignId) {
+        require(msg.sender == campaigns[campaignId].orgWallet, "Only campaign organization");
         _;
     }
 
@@ -71,7 +103,7 @@ contract UnityGive {
     // ─────────────────────────────────────────────
 
     constructor() {
-        admin = msg.sender; // The wallet that deploys this contract becomes admin
+        admin = msg.sender;
     }
 
     // ─────────────────────────────────────────────
@@ -79,65 +111,61 @@ contract UnityGive {
     // ─────────────────────────────────────────────
 
     /**
-     * @notice Register a new campaign on-chain.
-     *         Call this from your backend when a campaign is created in MongoDB.
-     * @param mongoId      The MongoDB _id string of the campaign
-     * @param orgWallet    The organization's ETH wallet address
-     * @param goalAmount   Fundraising goal in wei
+     * @notice Register a new campaign and assign the Multi-Sig Council
      */
     function registerCampaign(
         string memory mongoId,
         address payable orgWallet,
-        uint256 goalAmount
+        uint256 goalAmount,
+        address[] memory councilMembers,
+        uint256 requiredVotes,
+        uint256[] memory milestoneAmounts
     ) external onlyAdmin returns (uint256) {
         require(orgWallet != address(0), "Invalid org wallet");
-        require(goalAmount > 0, "Goal must be greater than 0");
+        require(goalAmount > 0, "Goal must be > 0");
+        require(councilMembers.length > 0, "Must have council members");
+        require(requiredVotes > 0 && requiredVotes <= councilMembers.length, "Invalid vote threshold");
+        require(milestoneAmounts.length > 0, "Must have at least one milestone");
+
+        uint256 totalMilestonesWei = 0;
+        for (uint i = 0; i < milestoneAmounts.length; i++) {
+            totalMilestonesWei += milestoneAmounts[i];
+        }
+        require(totalMilestonesWei == goalAmount, "Sum of milestones must equal goal amount");
 
         uint256 campaignId = campaignCount;
-
+        
         campaigns[campaignId] = Campaign({
-            mongoId:       mongoId,
-            orgWallet:     orgWallet,
-            goalAmount:    goalAmount,
+            mongoId: mongoId,
+            orgWallet: orgWallet,
+            totalGoalAmount: goalAmount,
             currentAmount: 0,
-            isActive:      true,
-            isFunded:      false
+            requiredVotes: requiredVotes,
+            isActive: true
         });
 
-        campaignCount++;
+        // Set council members
+        for (uint i = 0; i < councilMembers.length; i++) {
+            isCouncilMember[campaignId][councilMembers[i]] = true;
+        }
 
-        emit CampaignRegistered(campaignId, mongoId, goalAmount);
+        // Initialize milestones
+        for (uint i = 0; i < milestoneAmounts.length; i++) {
+            campaignMilestones[campaignId].push(Milestone({
+                amount: milestoneAmounts[i],
+                ipfsEvidence: "",
+                approvalCount: 0,
+                isApproved: false,
+                isFunded: false
+            }));
+            emit MilestoneAdded(campaignId, i, milestoneAmounts[i]);
+        }
+
+        campaignCount++;
+        emit CampaignRegistered(campaignId, mongoId, goalAmount, requiredVotes);
         return campaignId;
     }
 
-    /**
-     * @notice Release collected funds to the organization wallet.
-     *         Call this from your backend when a campaign is completed.
-     * @param campaignId  The on-chain campaign ID
-     */
-    function releaseFunds(uint256 campaignId)
-        external
-        onlyAdmin
-        campaignExists(campaignId)
-        campaignIsActive(campaignId)
-    {
-        Campaign storage c = campaigns[campaignId];
-        require(!c.isFunded, "Funds already released");
-        require(c.currentAmount > 0, "Nothing to release");
-
-        uint256 amount = c.currentAmount;
-        c.isFunded  = true;
-        c.isActive  = false;
-
-        c.orgWallet.transfer(amount);
-
-        emit FundsReleased(campaignId, c.orgWallet, amount);
-    }
-
-    /**
-     * @notice Cancel a campaign. Donors can then call refund() to get their ETH back.
-     * @param campaignId  The on-chain campaign ID
-     */
     function cancelCampaign(uint256 campaignId)
         external
         onlyAdmin
@@ -152,80 +180,139 @@ contract UnityGive {
     //  DONOR FUNCTIONS
     // ─────────────────────────────────────────────
 
-    /**
-     * @notice Donate ETH to a campaign. Called by the donor via MetaMask.
-     * @param campaignId  The on-chain campaign ID
-     */
     function donate(uint256 campaignId)
         external
         payable
         campaignExists(campaignId)
         campaignIsActive(campaignId)
     {
-        require(msg.value > 0, "Donation must be greater than 0");
+        require(msg.value > 0, "Must send > 0 ETH");
 
         campaigns[campaignId].currentAmount += msg.value;
-        donations[campaignId][msg.sender]   += msg.value;
+        donations[campaignId][msg.sender] += msg.value;
 
         emit DonationReceived(campaignId, msg.sender, msg.value);
     }
 
-    /**
-     * @notice Claim a refund after a campaign is cancelled.
-     *         Donors call this themselves from the frontend.
-     * @param campaignId  The on-chain campaign ID
-     */
     function refund(uint256 campaignId)
         external
+        nonReentrant
         campaignExists(campaignId)
     {
         Campaign storage c = campaigns[campaignId];
-        require(!c.isActive, "Campaign is still active");
-        require(!c.isFunded, "Funds already released to org, no refund possible");
+        require(!c.isActive, "Campaign still active");
 
         uint256 amount = donations[campaignId][msg.sender];
-        require(amount > 0, "No donation to refund");
+        require(amount > 0, "No funds to refund");
 
-        // Zero out before transfer to prevent re-entrancy attacks
         donations[campaignId][msg.sender] = 0;
-        c.currentAmount -= amount;
+        
+        // Prevent underflow if some funds were already transferred out to an earlier milestone
+        if (c.currentAmount >= amount) {
+            c.currentAmount -= amount;
+        } else {
+            c.currentAmount = 0;
+        }
 
-        payable(msg.sender).transfer(amount);
+        (bool success, ) = payable(msg.sender).call{value: amount}("");
+        require(success, "ETH transfer failed");
 
         emit RefundIssued(campaignId, msg.sender, amount);
     }
 
     // ─────────────────────────────────────────────
-    //  VIEW FUNCTIONS  (free to call, no gas)
+    //  ORGANIZATION FUNCTIONS
     // ─────────────────────────────────────────────
 
-    /// @notice Get full details of a campaign
+    /**
+     * @notice Organization uploads Proof of Impact (IPFS hash) to request milestone unlock
+     */
+    function uploadProofOfImpact(uint256 campaignId, uint256 milestoneIndex, string memory ipfsCID)
+        external
+        campaignExists(campaignId)
+        campaignIsActive(campaignId)
+        onlyOrganization(campaignId)
+    {
+        require(milestoneIndex < campaignMilestones[campaignId].length, "Invalid milestone");
+        Milestone storage m = campaignMilestones[campaignId][milestoneIndex];
+        require(!m.isApproved, "Milestone already approved");
+        require(bytes(ipfsCID).length > 0, "IPFS CID cannot be empty");
+
+        m.ipfsEvidence = ipfsCID;
+        emit ProofUploaded(campaignId, milestoneIndex, ipfsCID);
+    }
+
+    // ─────────────────────────────────────────────
+    //  MULTI-SIG COUNCIL FUNCTIONS
+    // ─────────────────────────────────────────────
+
+    /**
+     * @notice Council member votes to approve a specific milestone
+     */
+    function voteApproveMilestone(uint256 campaignId, uint256 milestoneIndex)
+        external
+        nonReentrant
+        campaignExists(campaignId)
+        campaignIsActive(campaignId)
+        onlyCouncilMember(campaignId)
+    {
+        require(milestoneIndex < campaignMilestones[campaignId].length, "Invalid milestone index");
+        Milestone storage m = campaignMilestones[campaignId][milestoneIndex];
+        
+        require(!m.isApproved, "Already approved");
+        require(!m.isFunded, "Already funded");
+        require(bytes(m.ipfsEvidence).length > 0, "Proof of Impact not uploaded yet");
+        require(!hasVoted[campaignId][milestoneIndex][msg.sender], "You already voted");
+
+        hasVoted[campaignId][milestoneIndex][msg.sender] = true;
+        m.approvalCount += 1;
+
+        emit Voted(campaignId, milestoneIndex, msg.sender);
+
+        // If threshold reached, release funds
+        Campaign storage c = campaigns[campaignId];
+        if (m.approvalCount >= c.requiredVotes) {
+            m.isApproved = true;
+            emit MilestoneApproved(campaignId, milestoneIndex);
+
+            // Execute funding transfer if contract has enough balance
+            if (c.currentAmount >= m.amount) {
+                m.isFunded = true;
+                c.currentAmount -= m.amount;
+                
+                (bool success, ) = c.orgWallet.call{value: m.amount}("");
+                require(success, "ETH transfer to Organization failed");
+
+                emit FundsReleased(campaignId, milestoneIndex, c.orgWallet, m.amount);
+            }
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  VIEW FUNCTIONS
+    // ─────────────────────────────────────────────
+
     function getCampaign(uint256 campaignId)
         external
         view
-        campaignExists(campaignId)
         returns (Campaign memory)
     {
         return campaigns[campaignId];
     }
 
-    /// @notice Check how much a specific donor has given to a campaign
-    function getDonorAmount(uint256 campaignId, address donor)
+    function getMilestone(uint256 campaignId, uint256 milestoneIndex)
+        external
+        view
+        returns (Milestone memory)
+    {
+        return campaignMilestones[campaignId][milestoneIndex];
+    }
+
+    function getMilestonesCount(uint256 campaignId)
         external
         view
         returns (uint256)
     {
-        return donations[campaignId][donor];
-    }
-
-    /// @notice Check if a campaign has reached its goal
-    function isGoalReached(uint256 campaignId)
-        external
-        view
-        campaignExists(campaignId)
-        returns (bool)
-    {
-        Campaign storage c = campaigns[campaignId];
-        return c.currentAmount >= c.goalAmount;
+        return campaignMilestones[campaignId].length;
     }
 }
