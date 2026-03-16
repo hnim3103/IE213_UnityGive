@@ -30,9 +30,12 @@ export const createDonation = async (req, res) => {
     const donation = new Donation(req.body);
     await donation.save();
     if (donation.status === "confirmed") {
-      await Campaign.findByIdAndUpdate(donation.campaignId, {
-        $inc: { currentAmount: donation.amount },
-      });
+      const campaign = await Campaign.findById(donation.campaignId);
+      if (campaign) {
+        const newAmount = (BigInt(campaign.currentAmount || "0") + BigInt(donation.amount || "0")).toString();
+        campaign.currentAmount = newAmount;
+        await campaign.save();
+      }
     }
     res.status(201).json(donation);
   } catch (error) {
@@ -51,10 +54,14 @@ export const updateDonation = async (req, res) => {
     const updatedDonation = await Donation.findByIdAndUpdate(id, req.body, {
       new: true,
     });
+    // If transitioning from unconfirmed to confirmed, add to campaign amount
     if (oldDonation.status !== "confirmed" && status === "confirmed") {
-      await Campaign.findByIdAndUpdate(updatedDonation.campaignId, {
-        $inc: { currentAmount: updatedDonation.amount },
-      });
+      const campaign = await Campaign.findById(updatedDonation.campaignId);
+      if (campaign) {
+        const newAmount = (BigInt(campaign.currentAmount || "0") + BigInt(updatedDonation.amount || "0")).toString();
+        campaign.currentAmount = newAmount;
+        await campaign.save();
+      }
     }
 
     res.status(200).json(updatedDonation);
