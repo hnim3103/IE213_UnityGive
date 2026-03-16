@@ -1,9 +1,10 @@
 import dotenv from "dotenv";
-dotenv.config(); 
+dotenv.config();
 
 import express from "express";
 import campaignsRoute from "./routes/campaignsRouters.js";
 import organizationsRoute from "./routes/organizationsRouters.js";
+import donationRoute from "./routes/donationsRouters.js";
 import authRoute from "./routes/authRouters.js";
 import { connectDB } from "./config/db.js";
 import cors from "cors";
@@ -20,6 +21,7 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/campaigns", campaignsRoute);
 app.use("/api/organizations", organizationsRoute);
+app.use("/api/donations", donationRoute);
 app.use("/api/auth", authRoute);
 
 connectDB().then(() => {
