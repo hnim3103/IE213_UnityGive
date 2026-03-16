@@ -1,5 +1,6 @@
-import express from "express"
+import express from "express";
 import { getAllOrganizations, createOrganization, updateOrganization, deleteOrganization } from "../controllers/organizationControllers.js";
+import { verifyToken, verifyOrganization } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
@@ -72,7 +73,7 @@ router.post("/", createOrganization);
  *       200:
  *         description: Organization updated
  */
-router.put("/:id", updateOrganization);
+router.put("/:id", verifyOrganization, updateOrganization);
 
 /**
  * @swagger
@@ -90,6 +91,6 @@ router.put("/:id", updateOrganization);
  *       200:
  *         description: Organization deleted
  */
-router.delete("/:id", deleteOrganization);
+router.delete("/:id", verifyOrganization, deleteOrganization);
 
 export default router;

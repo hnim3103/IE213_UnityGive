@@ -2,11 +2,11 @@ import Campaign from "../models/Campaign.js";
 
 export const getAllCampaigns = async (req, res) => {
   try {
-    const campaigns = await Campaign.find().sort({createdAt: -1});
+    const campaigns = await Campaign.find().sort({ createdAt: -1 });
     res.status(200).json(campaigns);
   } catch (error) {
     console.error("Failed to execute getAllCampaigns", error);
-    res.status(500).json({message: "An internal error occurred"});
+    res.status(500).json({ message: "An internal error occurred" });
   }
 };
 
@@ -24,20 +24,44 @@ export const getCampaignByID = async (req, res) => {
 
 export const createCampaign = async (req, res) => {
   try {
-    const campaign = new Campaign(req.body);
+    const {
+      title, description, totalGoalAmount, requiredVotes,
+      milestones, councilMembers, category, image,
+      startDate, endDate, orgId, creatorId, ambassadors
+    } = req.body;
+
+    // In a production environment, you might dispatch the Web3 transaction here 
+    // to UnityGive.sol via ethers.js. For now, we save the Multi-Sig struct to DB.
+
+    const campaign = new Campaign({
+      title,
+      description,
+      totalGoalAmount,
+      currentAmount: "0",
+      requiredVotes: requiredVotes || 1,
+      milestones: milestones || [],
+      councilMembers: councilMembers || [],
+      category,
+      image,
+      startDate,
+      endDate,
+      orgId,
+      creatorId,
+      ambassadors
+    });
 
     const newCampaign = await campaign.save();
     res.status(201).json(newCampaign);
   } catch (error) {
     console.error("Failed to execute createCampaign", error);
-    res.status(500).json({message: "An internal error occurred"});
+    res.status(500).json({ message: "An internal error occurred" });
   }
 };
 
 export const updateCampaign = (req, res) => {
-  res.status(200).json({message: "Campaign updated successfully"});
+  res.status(200).json({ message: "Campaign updated successfully" });
 };
 
 export const deleteCampaign = (req, res) => {
-  res.status(200).json({message: "Campaign deleted successfully"});
+  res.status(200).json({ message: "Campaign deleted successfully" });
 };
