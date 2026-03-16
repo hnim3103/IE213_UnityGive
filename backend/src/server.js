@@ -5,6 +5,7 @@ import express from "express";
 import campaignsRoute from "./routes/campaignsRouters.js";
 import organizationsRoute from "./routes/organizationsRouters.js";
 import authRoute from "./routes/authRouters.js";
+import commentRoute from "./routes/commentRouters.js";
 import { connectDB } from "./config/db.js";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
@@ -21,6 +22,7 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/campaigns", campaignsRoute);
 app.use("/api/organizations", organizationsRoute);
 app.use("/api/auth", authRoute);
+app.use("/api/comments", commentRoute);
 
 connectDB().then(() => {
   app.listen(PORT, () => {
