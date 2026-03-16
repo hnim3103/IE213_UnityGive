@@ -16,6 +16,28 @@ const options = {
           bearerFormat: 'JWT',
         }
       },
+      responses: {
+        NotFound: {
+          description: 'The specified resource was not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              }
+            }
+          }
+        },
+        InternalError: {
+          description: 'An internal error occurred',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              }
+            }
+          }
+        }
+      },
       schemas: {
         Organization: {
           type: 'object',

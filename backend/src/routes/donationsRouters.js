@@ -5,6 +5,7 @@ import {
   createDonation,
   updateDonation,
 } from "../controllers/donationController.js";
+import { verifyToken, verifyAdmin } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
@@ -21,6 +22,8 @@ const router = express.Router();
  *   get:
  *     summary: Get all donations
  *     tags: [Donations]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: List of all donations
@@ -30,10 +33,14 @@ const router = express.Router();
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Donation'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (Not an admin)
  *       500:
  *         $ref: '#/components/responses/InternalError'
  */
-router.get("/", getAllDonations);
+router.get("/", verifyAdmin, getAllDonations);
 
 /**
  * @swagger
@@ -41,6 +48,8 @@ router.get("/", getAllDonations);
  *   get:
  *     summary: Get a donation by ID
  *     tags: [Donations]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -55,12 +64,14 @@ router.get("/", getAllDonations);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Donation'
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         $ref: '#/components/responses/NotFound'
  *       500:
  *         $ref: '#/components/responses/InternalError'
  */
-router.get("/:id", getDonationByID);
+router.get("/:id", verifyToken, getDonationByID);
 
 /**
  * @swagger
@@ -68,6 +79,8 @@ router.get("/:id", getDonationByID);
  *   post:
  *     summary: Create a new donation
  *     tags: [Donations]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -81,10 +94,12 @@ router.get("/:id", getDonationByID);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Donation'
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         $ref: '#/components/responses/InternalError'
  */
-router.post("/", createDonation);
+router.post("/", verifyToken, createDonation);
 /**
  * @swagger
  * /api/donations/{id}:
@@ -92,6 +107,8 @@ router.post("/", createDonation);
  *     summary: Update donation status (Confirm payment)
  *     description: Used by system/admin to update status and trigger amount increment.
  *     tags: [Donations]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -113,11 +130,15 @@ router.post("/", createDonation);
  *     responses:
  *       200:
  *         description: Donation updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (Not an admin)
  *       404:
  *         description: Donation not found
  *       500:
  *         description: Internal server error
  */
-router.put("/:id", updateDonation);
+router.put("/:id", verifyAdmin, updateDonation);
 
 export default router;
