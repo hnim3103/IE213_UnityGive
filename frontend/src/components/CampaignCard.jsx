@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom'; 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,10 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { CAMPAIGN_TYPES, CAMPAIGN_COLORS } from '@/lib/constant';
 import { getDaysLeft } from '@/lib/utils';
+import { addFavorite, removeFavorite, getFavorites } from '@/lib/favouriteService';
 
 
-const CampaignCard = ({campaign}) => {
+const CampaignCard = ({campaign, currentUserId}) => {
   
   const typeLabel = CAMPAIGN_TYPES?.[campaign.type] || campaign.type;
   const campaignColor = CAMPAIGN_COLORS?.[campaign.type] || CAMPAIGN_COLORS.DEFAULT;
@@ -23,6 +24,40 @@ const CampaignCard = ({campaign}) => {
   const daysLeft = getDaysLeft(campaign.end_date);
   
   const percentage = Math.min((campaign.current_amount / campaign.target_amount) * 100, 100);
+
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const token = localStorage.getItem('token');
+    if (!token) return; // not logged in
+
+    // check if this campaign is favorited for user
+    getFavorites().then(data => {
+      if (!mounted) return;
+      const ids = (data.campaigns || []).map(c => c._id);
+      setIsFav(ids.includes(campaign._id));
+    }).catch(() => {});
+    return () => { mounted = false };
+  }, [campaign._id]);
+
+  const toggleFav = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return alert('Vui lòng đăng nhập để thêm vào yêu thích');
+
+    try {
+      if (isFav) {
+        await removeFavorite(campaign._id);
+        setIsFav(false);
+      } else {
+        await addFavorite(campaign._id);
+        setIsFav(true);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Lỗi thao tác yêu thích');
+    }
+  };
 
   return (
     <Card className="w-full max-w-sm overflow-hidden hover:shadow-lg transition-shadow bg-white">
@@ -70,9 +105,14 @@ const CampaignCard = ({campaign}) => {
           <span className="material-symbols-outlined text-slate-400 text-[15px]!">schedule</span>
           <span className="text-xs text-slate-500">Còn {daysLeft} ngày</span>
         </div>
-        <Link to={`/campaigns/${campaign._id}`} className={`text-${campaignColor} font-bold hover:underline`}>
-          Quyên góp
-        </Link>
+        <div className="flex items-center gap-3">
+          <button onClick={toggleFav} aria-label="toggle favorite" className="text-xl">
+            {isFav ? <span className="text-red-500">♥</span> : <span className="text-slate-400">♡</span>}
+          </button>
+          <Link to={`/campaigns/${campaign._id}`} className={`text-${campaignColor} font-bold hover:underline`}>
+            Quyên góp
+          </Link>
+        </div>
       </CardFooter>
     </Card>
   );

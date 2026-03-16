@@ -14,6 +14,7 @@ const Navbar = () => {
   const navLinks = [
     { id: "homepage", label: "Trang chủ", path: "/" },
     { id: "campaigns", label: "Dự án", path: "/campaigns" },
+    { id: "favorites", label: "Yêu thích", path: "/favorites" },
     { id: "about", label: "Về chúng tôi", path: "/about" },
     { id: "faqs", label: "Hướng dẫn", path: "/faqs" },
   ];
