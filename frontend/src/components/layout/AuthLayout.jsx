@@ -5,15 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import metaMaskIcon from '../../assets/metamask.svg';
+import Footer from '@/components/Footer';
 
-export const AuthLayout = ({ 
-  title, 
-  subtitle, 
-  dividerText, 
-  footerText, 
-  footerLinkText, 
-  footerLinkTo, 
-  children 
+
+export const AuthLayout = ({
+  title,
+  subtitle,
+  dividerText,
+  footerText,
+  footerLinkText,
+  footerLinkTo,
+  children
 }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const navigate = useNavigate();
@@ -149,22 +151,10 @@ export const AuthLayout = ({
         </Card>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full border-t border-sage-800/10 bg-sage-50 py-10 px-12 mt-auto">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex flex-col gap-2">
-            <span className="text-lg font-instrument text-sage-800">Unity Give</span>
-            <p className="text-[10px] uppercase tracking-widest text-sage-800/60 font-plus-jakarta">
-              © 2026 Unity Give. Nurturing change through the block.
-            </p>
-          </div>
-          <nav className="flex gap-8 text-[12px] uppercase tracking-widest text-sage-800/60 font-plus-jakarta">
-            <Link to="/terms" className="hover:text-sage-800 transition-colors">Terms of Service</Link>
-            <Link to="/privacy" className="hover:text-sage-800 transition-colors">Privacy Policy</Link>
-            <Link to="/contact" className="hover:text-sage-800 transition-colors">Contact</Link>
-          </nav>
-        </div>
-      </footer>
+      <div className='w-full mt-30'>
+        <Footer />
+      </div>
     </div>
+
   );
 };

@@ -17,10 +17,43 @@ const campaignSchema = new mongoose.Schema({
     required: true
   },
 
+  // THÊM MỚI: Mức vốn tối thiểu để chiến dịch được coi là thành công
+  softCapAmount: {
+    type: String,
+    required: true,
+    // Nên validate softCapAmount <= totalGoalAmount ở cấp độ Controller
+  },
+
   currentAmount: {
-    type: String, // String for Wei BigInt
+    type: String,
     default: "0"
   },
+
+  // CẬP NHẬT: Thêm các trạng thái xử lý thất bại
+  status: {
+    type: String,
+    enum: [
+      "DRAFT",
+      "ACTIVE",
+      "PAUSED",
+      "COMPLETED", // Đạt Soft Cap hoặc Hard Cap
+      "FAILED",    // Không đạt Soft Cap khi hết hạn
+      "REFUNDING", // Đang trong quá trình cho phép user rút lại tiền
+      "CANCELLED"
+    ],
+    default: "DRAFT"
+  },
+
+  // THÊM MỚI: Xử lý gia hạn thời gian
+  isExtended: {
+    type: Boolean,
+    default: false
+  },
+
+  originalEndDate: {
+    type: Date // Lưu lại mốc thời gian gốc nếu có sự gia hạn
+  },
+
 
   onChainCampaignId: {
     type: Number
@@ -59,12 +92,6 @@ const campaignSchema = new mongoose.Schema({
     default: "OTHER"
   },
 
-  status: {
-    type: String,
-    enum: ["DRAFT", "ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"],
-    default: "DRAFT"
-  },
-
   image: {
     type: String,
     required: true
@@ -96,6 +123,8 @@ const campaignSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+
 
 const Campaign = mongoose.model("Campaign", campaignSchema);
 
