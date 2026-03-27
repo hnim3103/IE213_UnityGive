@@ -1,13 +1,13 @@
 export const CAMPAIGN_TYPES = {
-  CHILDREN: "Trẻ em",
-  COMMUNITY: "Cộng đồng",
-  ENVIRONMENT: "Môi trường",
-  WILD_ANIMAL: "Động vật hoang dã",
-  MEDICAL: "Y tế",
-  EDUCATION: "Giáo dục",
-  DIFFICULT_CIRCUMSTANCES: "Hoàn cảnh khó khăn",
-  ELDERLY_LIVING_ALONE: "Người già neo đơn",
-  OTHER: "Khác"
+  CHILDREN: "Children",
+  COMMUNITY: "Community",
+  ENVIRONMENT: "Environment",
+  WILD_ANIMAL: "Wild Animal",
+  MEDICAL: "Medical",
+  EDUCATION: "Education",
+  DIFFICULT_CIRCUMSTANCES: "Difficult Circumstances",
+  ELDERLY_LIVING_ALONE: "Elderly Living Alone",
+  OTHER: "Other"
 };
 
 export const CAMPAIGN_COLORS = {
