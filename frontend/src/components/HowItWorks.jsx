@@ -10,8 +10,8 @@ const HowItWorks = () => {
     },
     {
       id: 2,
-      title: "Choose a Project",
-      description: "Find impactful social projects that resonate with your heart and values.",
+      title: "Choose a Campaign",
+      description: "Find impactful social campaigns that resonate with your heart and values.",
       icon: "favorite",
     },
     {
@@ -39,7 +39,7 @@ const HowItWorks = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-24 relative w-full">
           {/* Dashed Line Connection (Desktop Only) */}
           <div className="hidden md:block absolute top-[48px] left-[15%] right-[15%] h-[2px] border-t-2 border-dashed border-sage-800/10 -z-0" />
-          
+
           {steps.map((step, index) => (
             <div key={step.id} className={`flex flex-col items-center text-center gap-10 relative z-10 group animate-in fade-in slide-in-from-bottom-8 duration-700 delay-[${index * 200}ms]`}>
               {/* Icon Container with Custom Shape */}
@@ -48,7 +48,7 @@ const HowItWorks = () => {
                   {step.icon}
                 </span>
               </div>
-              
+
               {/* Text Content */}
               <div className="flex flex-col gap-4">
                 <h3 className="text-2xl font-light text-sage-800 group-hover:text-earth-500 transition-colors duration-300">
