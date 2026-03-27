@@ -3,7 +3,7 @@ import React from 'react';
 const ImpactStats = () => {
   const stats = [
     {
-      label: "Projects Completed",
+      label: "Campaigns Completed",
       value: "148",
       color: "text-sage-800"
     },
@@ -23,12 +23,12 @@ const ImpactStats = () => {
     <section className="px-8 mb-32">
       <div className="max-w-7xl mx-auto bg-sage-stats rounded-[64px] py-24 px-12 relative overflow-hidden flex flex-col items-center border border-white/50">
         {/* Decorative Radial Gradient Background */}
-        <div className="absolute inset-0 opacity-[0.05] pointer-events-none scale-150" 
-             style={{ 
-               background: "radial-gradient(circle at center, #45573b 0%, transparent 70%)" 
-             }} 
+        <div className="absolute inset-0 opacity-[0.05] pointer-events-none scale-150"
+          style={{
+            background: "radial-gradient(circle at center, #45573b 0%, transparent 70%)"
+          }}
         />
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-32 relative z-10 w-full text-center">
           {stats.map((stat, index) => (
             <div key={index} className="flex flex-col gap-5 animate-in fade-in zoom-in-95 duration-1000">
