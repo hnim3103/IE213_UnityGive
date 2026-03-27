@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { ethers } from "ethers";
 
 // Read at call-time, not at import-time, so dotenv has already run
 function getJwtSecret() {
@@ -71,6 +72,79 @@ export async function loginService(userData) {
     user: {
       id: user._id,
       name: user.name,
+      email: user.email,
+      role: user.role,
+      isVerified: user.isVerified,
+    },
+  };
+}
+
+export async function getWeb3Nonce(walletAddress) {
+  walletAddress = walletAddress.toLowerCase();
+  let user = await User.findOne({ walletAddress });
+  
+  if (!user) {
+    // Check if a user with this email but without wallet exists
+    // (We skip this complex merge logic. Just create a bare user with wallet address)
+    user = new User({
+      walletAddress,
+      name: "Web3 User",
+      role: "donor",
+      nonce: Math.floor(Math.random() * 1000000).toString()
+    });
+    await user.save();
+  } else {
+    // Regenerate nonce just in case
+    user.nonce = Math.floor(Math.random() * 1000000).toString();
+    await user.save();
+  }
+
+  return { nonce: user.nonce };
+}
+
+export async function web3Login(walletAddress, signature) {
+  walletAddress = walletAddress.toLowerCase();
+  const user = await User.findOne({ walletAddress });
+  
+  if (!user) {
+    throw { status: 404, message: "User not found for this wallet address. Please request a nonce first." };
+  }
+
+  if (user.status !== "active") {
+    throw { status: 403, message: "Account is suspended or deleted" };
+  }
+
+  // Define the message exactly how the frontend signs it
+  const message = `Sign this message to authenticate with UnityGive.\n\nNonce: ${user.nonce}`;
+  
+  let recoveredAddress;
+  try {
+    recoveredAddress = ethers.utils.verifyMessage(message, signature);
+  } catch (error) {
+    throw { status: 400, message: "Invalid signature format" };
+  }
+
+  if (recoveredAddress.toLowerCase() !== walletAddress) {
+    throw { status: 401, message: "Signature verification failed" };
+  }
+
+  // Update nonce to prevent replay attacks
+  user.nonce = Math.floor(Math.random() * 1000000).toString();
+  user.lastLogin = new Date();
+  await user.save();
+
+  const token = generateToken({
+    id: user._id,
+    walletAddress: user.walletAddress,
+    role: user.role,
+  });
+
+  return {
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      walletAddress: user.walletAddress,
       email: user.email,
       role: user.role,
       isVerified: user.isVerified,

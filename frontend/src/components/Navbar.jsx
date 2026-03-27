@@ -55,10 +55,15 @@ const Navbar = () => {
           </ul>
 
           {/* --- LOGIN BUTTON (Desktop) --- */}
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-4">
             <Link to='/login'>
-              <button className='px-6 py-2.5 rounded-full bg-coral text-white font-medium hover:cursor-pointer hover:bg-[#ed1651] transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5'>
+              <button className='px-6 py-2.5 rounded-full border border-coral text-coral font-medium hover:cursor-pointer hover:bg-coral/5 transition-all'>
                 Login
+              </button>
+            </Link>
+            <Link to='/signup'>
+              <button className='px-6 py-2.5 rounded-full bg-coral text-white font-medium hover:cursor-pointer hover:bg-[#ed1651] transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5'>
+                Signup
               </button>
             </Link>
           </div>
@@ -97,11 +102,16 @@ const Navbar = () => {
                 </Link>
               </li>
             ))}
-            {/* Mobile Login Button */}
-            <li className="pt-2">
+            {/* Mobile Auth Buttons */}
+            <li className="pt-2 flex flex-col gap-2">
                <Link to='/login' onClick={() => setIsMobileMenuOpen(false)}>
-                  <button className='w-full py-3 rounded-full bg-coral text-white font-bold hover:bg-[#ed1651] shadow-md'>
+                  <button className='w-full py-3 rounded-full border border-coral text-coral font-bold hover:bg-coral/5 shadow-sm'>
                     Login
+                  </button>
+               </Link>
+               <Link to='/signup' onClick={() => setIsMobileMenuOpen(false)}>
+                  <button className='w-full py-3 rounded-full bg-coral text-white font-bold hover:bg-[#ed1651] shadow-md'>
+                    Signup
                   </button>
                </Link>
             </li>

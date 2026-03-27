@@ -1,5 +1,5 @@
 import express from "express";
-import { signupService, loginService } from "../services/authService.js";
+import { signupService, loginService, getWeb3Nonce, web3Login } from "../services/authService.js";
 import { signupSchema } from "../validators/signupValidator.js";
 import { loginSchema } from "../validators/loginValidator.js";
 
@@ -12,47 +12,6 @@ const router = express.Router();
  *   description: Authentication management
  */
 
-/**
- * @swagger
- * /api/auth/signup:
- *   post:
- *     summary: Register a new user
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - name
- *               - email
- *               - password
- *             properties:
- *               name:
- *                 type: string
- *                 example: John Doe
- *               email:
- *                 type: string
- *                 format: email
- *                 example: john@example.com
- *               password:
- *                 type: string
- *                 example: Password123
- *               role:
- *                 type: string
- *                 enum: [donor, organization]
- *                 default: donor
- *     responses:
- *       201:
- *         description: User created successfully
- *       400:
- *         description: Validation error
- *       409:
- *         description: Email already in use
- *       500:
- *         description: Internal server error
- */
 router.post("/signup", async (req, res) => {
     try {
         const validationResult = signupSchema.safeParse(req.body);
@@ -81,51 +40,6 @@ router.post("/signup", async (req, res) => {
     }
 });
 
-/**
- * @swagger
- * /api/auth/login:
- *   post:
- *     summary: Log in an existing user
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: john@example.com
- *               password:
- *                 type: string
- *                 example: Password123
- *     responses:
- *       200:
- *         description: Login successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Login successful
- *                 user:
- *                   type: object
- *                 token:
- *                   type: string
- *       400:
- *         description: Validation error
- *       401:
- *         description: Invalid credentials
- *       500:
- *         description: Internal server error
- */
 router.post("/login", async (req, res) => {
     try {
         const validationResult = loginSchema.safeParse(req.body);
@@ -150,6 +64,52 @@ router.post("/login", async (req, res) => {
             return res.status(error.status).json({ message: error.message });
         }
         console.error("Login error:", error);
+        res.status(500).json({ message: "An internal server error occurred" });
+    }
+});
+
+/**
+ * Web3 Authentication Routes
+ */
+
+router.post("/web3/nonce", async (req, res) => {
+    try {
+        const { walletAddress } = req.body;
+        if (!walletAddress) {
+            return res.status(400).json({ message: "walletAddress is required" });
+        }
+
+        const result = await getWeb3Nonce(walletAddress);
+        res.status(200).json(result);
+        
+    } catch (error) {
+        if (error.status) {
+            return res.status(error.status).json({ message: error.message });
+        }
+        console.error("Nonce error:", error);
+        res.status(500).json({ message: "An internal server error occurred" });
+    }
+});
+
+router.post("/web3/login", async (req, res) => {
+    try {
+        const { walletAddress, signature } = req.body;
+        if (!walletAddress || !signature) {
+            return res.status(400).json({ message: "walletAddress and signature are required" });
+        }
+
+        const result = await web3Login(walletAddress, signature);
+        
+        res.status(200).json({
+            message: "Login successful",
+            ...result
+        });
+        
+    } catch (error) {
+        if (error.status) {
+            return res.status(error.status).json({ message: error.message });
+        }
+        console.error("Web3 Login error:", error);
         res.status(500).json({ message: "An internal server error occurred" });
     }
 });
