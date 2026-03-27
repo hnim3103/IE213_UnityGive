@@ -1,5 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Instrument+Serif:ital@0;1&amp;display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Instrument+Serif:ital,wght@0,400;1,400&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -53,16 +53,25 @@
 @theme {
   --font-plus-jakarta: "Plus Jakarta Sans", "sans-serif";
   --font-instrument: "Instrument Serif", "serif";
+  --font-fraunces: "Fraunces", "serif";
+  --font-nunito: "Nunito", "sans-serif";
 
-  /* Extracted custom colors from Signup.jsx */
+  /* Brand Palette */
   --color-sage-50: #fcf9ed;
   --color-sage-100: #ddf3cd;
   --color-sage-200: #c4c8bd;
   --color-sage-300: #ded8cf;
+  --color-sage-400: #e5e3d6;
+  --color-sage-500: #5d7052;
   --color-sage-600: #5d7052;
   --color-sage-700: #4a5a41;
   --color-sage-800: #45573b;
   --color-sage-900: #35432d;
+
+  --color-sage-bg: #fcf9ed;
+  --color-sage-section: #f6f4e7;
+  --color-sage-footer: #f2efe0;
+  --color-sage-stats: #f1eee2;
 
   --color-earth-100: #fefefa;
   --color-earth-500: #81542b;
