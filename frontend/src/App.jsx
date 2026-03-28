@@ -4,6 +4,7 @@ import Signup from './pages/Signup';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Campaigns from './pages/Campaigns';
+import AboutUs from './pages/AboutUs';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/campaigns" element={<Campaigns />} />
+          <Route path="/about" element={<AboutUs />} />
         </Routes>
       </BrowserRouter>
     </>
