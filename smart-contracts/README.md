@@ -2,6 +2,26 @@
 
 This project contains the Solidity smart contracts for UnityGive. It uses [Hardhat](https://hardhat.org/) as the development environment and TypeScript for the testing and deployment scripts.
 
+## Key Features
+
+- Milestone-based funding with Proof of Impact via IPFS
+- Multi-Sig Council for secure fund release
+- Deadline & Top-up mechanism
+- Automatic excess donation handling
+- Refund support when campaign is cancelled
+
+---
+
+## UML Diagram
+
+### Sequence Diagram
+
+The following diagram illustrates the main interaction flows in the UnityGive smart contract:
+
+![UnityGive Sequence Diagram](uml_diagram.png)
+
+*(Sequence Diagram showing Register Campaign, Donation with excess handling, Proof upload, Multi-Sig voting, Top-up after deadline, and Refund flow)*
+
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) (v16 or higher recommended)
@@ -61,3 +81,14 @@ npx hardhat run scripts/deploy.ts --network sepolia
 - `test/`: Contract test suite.
 - `hardhat.config.ts`: Main Hardhat project configuration (networks, compiler versions).
 - `typechain-types/`: TypeScript typings automatically generated from the contracts.
+
+## Smart Contract Overview
+UnityGive supports the following main actors and flows:
+
+- Admin: Registers campaigns with milestones, council, and deadline
+- Donor: Donates ETH (excess is auto-sent to organization)
+- Organization: Uploads IPFS proof and can top-up after deadline
+- Council Member: Votes to approve milestones
+- Refund: Available after campaign cancellation
+
+Key mechanisms include automatic pending milestone release, excess handling, and time-bound fundraising.
