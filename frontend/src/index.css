@@ -1,5 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Instrument+Serif:ital@0;1&amp;display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Instrument+Serif:ital,wght@0,400;1,400&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -50,9 +50,33 @@
   --color-coral: #f47174;
 }
 
-@theme{
+@theme {
   --font-plus-jakarta: "Plus Jakarta Sans", "sans-serif";
   --font-instrument: "Instrument Serif", "serif";
+  --font-fraunces: "Fraunces", "serif";
+  --font-nunito: "Nunito", "sans-serif";
+
+  /* Brand Palette */
+  --color-sage-50: #fcf9ed;
+  --color-sage-100: #ddf3cd;
+  --color-sage-200: #c4c8bd;
+  --color-sage-300: #ded8cf;
+  --color-sage-400: #e5e3d6;
+  --color-sage-500: #5d7052;
+  --color-sage-600: #5d7052;
+  --color-sage-700: #4a5a41;
+  --color-sage-800: #45573b;
+  --color-sage-900: #35432d;
+
+  --color-sage-bg: #fcf9ed;
+  --color-sage-section: #f6f4e7;
+  --color-sage-footer: #f2efe0;
+  --color-sage-stats: #f1eee2;
+
+  --color-earth-100: #fefefa;
+  --color-earth-500: #81542b;
+  --color-earth-800: #74786f;
+  --color-earth-900: #444840;
 }
 
 :root {
@@ -124,7 +148,7 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
-body{
+body {
   font-family: var(--font-plus-jakarta);
   -webkit-font-smoothing: antialised;
 }
@@ -138,7 +162,12 @@ body{
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+button:hover {
+  cursor: pointer;
 }

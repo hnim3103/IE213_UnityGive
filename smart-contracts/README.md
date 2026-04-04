@@ -24,6 +24,8 @@ The following diagram illustrates the main interaction flows in the UnityGive sm
 
 ## Prerequisites
 
+## Prerequisites
+
 - [Node.js](https://nodejs.org/) (v16 or higher recommended)
 - npm or yarn
 

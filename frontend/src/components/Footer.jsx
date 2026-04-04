@@ -1,62 +1,35 @@
-import React from 'react'
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <footer className="bg-slate-900 text-white pt-20 pb-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20 border-b border-slate-800 pb-20">
-          <div className="col-span-1 lg:col-span-1">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="material-symbols-outlined text-white text-sm">volunteer_activism</span>
-              </div>
-              <span className="text-xl font-extrabold tracking-tight">Unity<span className="text-primary">Give</span></span>
-            </div>
-            <p className="text-slate-400 mb-8">Trao quyền cho cộng đồng thông qua gây quỹ minh bạch và có tác động từ năm 2018.</p>
-            <div className="flex gap-4">
-              <a className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-primary transition-all" href="#"><span className="material-symbols-outlined text-sm">public</span></a>
-              <a className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-primary transition-all" href="#"><span className="material-symbols-outlined text-sm">alternate_email</span></a>
-              <a className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-primary transition-all" href="#"><span className="material-symbols-outlined text-sm">share</span></a>
-            </div>
-          </div>
-          <div>
-            <h5 className="font-bold text-lg mb-6">Chiến Dịch</h5>
-            <ul className="space-y-4 text-slate-400">
-              <li><a className="hover:text-primary transition-colors" href="#">Giáo Dục</a></li>
-              <li><a className="hover:text-primary transition-colors" href="#">Môi Trường</a></li>
-              <li><a className="hover:text-primary transition-colors" href="#">Cứu Trợ Khẩn Cấp</a></li>
-              <li><a className="hover:text-primary transition-colors" href="#">Hỗ Trợ Y Tế</a></li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="font-bold text-lg mb-6">Tài Nguyên</h5>
-            <ul className="space-y-4 text-slate-400">
-              <li><a className="hover:text-primary transition-colors" href="#">Câu Chuyện Nhà Hảo Tâm</a></li>
-              <li><a className="hover:text-primary transition-colors" href="#">Cách Thức Hoạt Động</a></li>
-              <li><a className="hover:text-primary transition-colors" href="#">Báo Cáo Minh Bạch</a></li>
-              <li><a className="hover:text-primary transition-colors" href="#">Trung Tâm Trợ Giúp</a></li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="font-bold text-lg mb-6">Cập Nhật Tin Tức</h5>
-            <p className="text-slate-400 mb-4">Đăng ký để nhận báo cáo tác động hàng tháng.</p>
-            <div className="relative">
-              <input className="w-full bg-slate-800 border-none rounded-full py-3 px-6 text-sm focus:ring-2 focus:ring-primary" placeholder="Địa chỉ email" type="email"/>
-              <button className="absolute right-2 top-2 bottom-2 bg-primary text-white px-4 rounded-full text-xs font-bold">Tham Gia</button>
-            </div>
-          </div>
+    <footer className="bg-sage-footer py-20 px-8 md:px-24 font-nunito rounded-t-[40px] border-t border-sage-800/5">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 text-center md:text-left">
+
+        {/* Brand Section */}
+        <div className="flex flex-col gap-2">
+          <span className="text-2xl font-instrument italic text-sage-800">UnityGive</span>
+          <p className="text-[14px] font-extralight text-sage-800/60 tracking-wider">
+            © 2026 UnityGive. Nuturing change through the block.
+          </p>
         </div>
-        <div className="flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
-          <p>© 2026 UnityGive. Bảo lưu mọi quyền.</p>
-          <div className="flex gap-8 mt-4 md:mt-0">
-            <a className="hover:text-slate-300" href="#">Chính Sách Bảo Mật</a>
-            <a className="hover:text-slate-300" href="#">Điều Khoản Dịch Vụ</a>
-            <a className="hover:text-slate-300" href="#">Chính Sách Cookie</a>
-          </div>
-        </div>
+
+        {/* Links Section */}
+        <nav className="flex flex-wrap justify-center gap-8 md:gap-12">
+          <Link to="/privacy" className="text-[14px] font-extralight text-sage-800/60 hover:text-sage-800 transition-colors">
+            Privacy Policy
+          </Link>
+          <Link to="/terms" className="text-[14px] font-extralight text-sage-800/60 hover:text-sage-800 transition-colors">
+            Terms of Service
+          </Link>
+          <Link to="/contact" className="text-[14px] font-extralight text-sage-800/60 hover:text-sage-800 transition-colors">
+            Contact
+          </Link>
+        </nav>
+
       </div>
     </footer>
-  )
-}
+  );
+};
 
-export default Footer
+export default Footer;

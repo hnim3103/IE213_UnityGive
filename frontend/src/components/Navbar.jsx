@@ -1,74 +1,114 @@
-import React, { useState } from 'react'
-import white_logo from '/donate-heart-logo-white.png'
-// import black_logo from '/donate-heart-logo-black.png' // Unused currently, but kept for reference
-import { Link, useLocation } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Button } from './ui/button'
 
 const Navbar = () => {
-  // 1. State for Mobile Menu
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Get current location
+  const [user, setUser] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const { pathname } = location;
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Failed to parse user data");
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/");
+  };
+
   const navLinks = [
-    { id: "homepage", label: "Trang chủ", path: "/" },
-    { id: "campaigns", label: "Dự án", path: "/campaigns" },
-    { id: "about", label: "Về chúng tôi", path: "/about" },
-    { id: "faqs", label: "Hướng dẫn", path: "/faqs" },
+    { id: "homepage", label: "Home", path: "/" },
+    { id: "campaigns", label: "Projects", path: "/campaigns" },
+    { id: "about", label: "About Us", path: "/about" },
+    { id: "how-it-works", label: "How it Works", path: "/how-it-works" },
   ];
 
   const isActive = (path) => pathname === path;
 
   return (
-    <div className="sticky top-0 z-50 shadow-[0_1px_3px_-2px_black] bg-[#fefefe]">
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 backdrop-blur-md bg-sage-50/80 border-b border-sage-800/10 font-nunito">
+      <div className="max-w-7xl mx-auto px-8">
         <div className="flex justify-between items-center h-20">
-          
-          {/* --- LOGO SECTION --- */}
-          <Link to='/' className="shrink-0">
-            <div className="nav-logo flex items-center gap-2">
-              <img src={white_logo} className='w-10 md:w-12 border rounded-[14px] bg-primary p-2' alt="logo" />
-              <span className="text-xl md:text-2xl font-bold">Unity<span className="text-primary">Give</span></span>
-            </div>
+
+          {/* Logo Section */}
+          <Link to="/" className="flex items-center gap-2 group">
+            <span className="text-2xl font-instrument italic text-sage-800">UnityGive</span>
           </Link>
 
-          {/* --- DESKTOP MENU (Hidden on Mobile) --- */}
-          <ul className="hidden md:flex items-center gap-8 text-[16px] font-medium">
+          {/* Desktop Navigation */}
+          <ul className="hidden md:flex items-center gap-10">
             {navLinks.map((item) => (
-              <li key={item.id} className="relative group h-full flex items-center">
-                <Link 
+              <li key={item.id}>
+                <Link
                   to={item.path}
-                  className={`transition-colors duration-200 ${
-                    isActive(item.path)
-                      ? "text-primary font-bold"
-                      : "text-slate-600 hover:text-primary"
-                  }`}
+                  className={`text-[15px] transition-all duration-200 relative pb-1 ${isActive(item.path)
+                      ? "text-sage-800 font-bold border-b-2 border-earth-500"
+                      : "text-sage-800/70 hover:text-sage-800"
+                    }`}
                 >
                   {item.label}
-                  {/* Optional: Add a small underline indicator for desktop */}
-                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all duration-300 ${isActive(item.path) ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                 </Link>
               </li>
             ))}
           </ul>
 
-          {/* --- LOGIN BUTTON (Desktop) --- */}
-          <div className="hidden md:block">
-            <Link to='/login'>
-              <button className='px-6 py-2.5 rounded-full bg-coral text-white font-medium hover:cursor-pointer hover:bg-[#ed1651] transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5'>
-                Login
-              </button>
-            </Link>
+          {/* Auth Buttons */}
+          <div className="hidden md:flex items-center gap-4">
+            {user ? (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-sage-200 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-sage-800 font-bold uppercase">{user.name ? user.name.charAt(0) : "U"}</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-sage-800 leading-tight">{user.name || "User"}</span>
+                    <span className="text-[11px] text-sage-800/60 capitalize leading-tight">{user.role || "Donor"}</span>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleLogout}
+                  variant="outline" 
+                  className="border-sage-800/20 text-sage-800 hover:bg-sage-100 rounded-full font-medium transition-all ml-2 px-6"
+                >
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" className="text-sage-800 hover:text-sage-800 hover:bg-sage-800/5 px-6 rounded-full font-medium transition-all">
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button className="bg-sage-600 hover:bg-sage-700 text-sage-100 px-8 rounded-full font-medium shadow-[0px_10px_30px_-10px_rgba(69,87,59,0.3)] transition-all">
+                    Signup
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
-          {/* --- MOBILE HAMBURGER BUTTON --- */}
-          {/* 'md:hidden' means: Show on mobile, hide on medium screens and up */}
+          {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center">
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-slate-600 hover:text-primary focus:outline-none"
+              className="text-sage-800 hover:opacity-80 transition-opacity"
             >
               <span className="material-symbols-outlined text-3xl">
                 {isMobileMenuOpen ? 'close' : 'menu'}
@@ -78,38 +118,71 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* --- MOBILE MENU DROPDOWN --- */}
+      {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-[#fefefe] border-t border-gray-100 absolute w-full left-0 shadow-lg">
-          <ul className="flex flex-col p-4 space-y-4 font-medium text-[16px]">
+        <div className="md:hidden bg-sage-50 border-t border-sage-800/5 absolute w-full left-0 shadow-xl animate-in fade-in slide-in-from-top-4">
+          <ul className="flex flex-col p-8 space-y-6">
             {navLinks.map((item) => (
               <li key={item.id}>
-                <Link 
+                <Link
                   to={item.path}
-                  onClick={() => setIsMobileMenuOpen(false)} // Close menu when clicked
-                  className={`block px-4 py-2 rounded-lg ${
-                    isActive(item.path)
-                      ? "bg-primary/10 text-primary font-bold"
-                      : "text-slate-600 hover:bg-gray-50 hover:text-primary"
-                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`text-lg block ${isActive(item.path)
+                      ? "text-sage-800 font-bold"
+                      : "text-sage-800/70"
+                    }`}
                 >
                   {item.label}
                 </Link>
               </li>
             ))}
-            {/* Mobile Login Button */}
-            <li className="pt-2">
-               <Link to='/login' onClick={() => setIsMobileMenuOpen(false)}>
-                  <button className='w-full py-3 rounded-full bg-coral text-white font-bold hover:bg-[#ed1651] shadow-md'>
-                    Login
-                  </button>
-               </Link>
+            <li className="pt-4 flex flex-col gap-4 border-t border-sage-800/10 mt-2">
+              {user ? (
+                <>
+                  <div className="flex items-center gap-3 py-3 px-4 rounded-xl bg-sage-800/5">
+                    <div className="w-12 h-12 rounded-full bg-sage-200 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center">
+                      {user.avatar ? (
+                        <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-sage-800 font-bold text-lg uppercase">{user.name ? user.name.charAt(0) : "U"}</span>
+                      )}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sage-800">{user.name || "User"}</span>
+                      <span className="text-sm text-sage-800/60 capitalize">{user.role || "Donor"}</span>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }} 
+                    variant="outline" 
+                    className="w-full py-6 border-sage-800/20 text-sage-800 rounded-full font-bold"
+                  >
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full py-6 border-sage-800/20 text-sage-800 rounded-full font-bold">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button className="w-full py-6 bg-sage-800 text-white rounded-full font-bold shadow-lg">
+                      Signup
+                    </Button>
+                  </Link>
+                </>
+              )}
             </li>
           </ul>
         </div>
       )}
 
-    </div>
+    </nav>
   )
 }
 

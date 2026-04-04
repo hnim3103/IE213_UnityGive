@@ -19,6 +19,11 @@ const userSchema = new mongoose.Schema({
     sparse: true
   },
 
+  nonce: {
+    type: String,
+    default: () => Math.floor(Math.random() * 1000000).toString()
+  },
+
   name: {
     type: String,
     required: true
