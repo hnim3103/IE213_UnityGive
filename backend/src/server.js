@@ -28,9 +28,13 @@ app.use("/api/auth", authRoute);
 app.use("/api/comments", commentRoute);
 app.use("/api/users", usersRoute);
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-    console.log(`Swagger docs at http://localhost:${PORT}/docs`);
+if (process.env.NODE_ENV !== "test") {
+  connectDB().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}`);
+      console.log(`Swagger docs at http://localhost:${PORT}/docs`);
+    });
   });
-});
+}
+
+export default app;
