@@ -1,35 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import CampaignCard from './CampaignCard';
 import axios from 'axios';
+import useSWR from 'swr';
 import { Button } from './ui/button';
 import { Link } from 'react-router-dom';
 
 const ActiveCampaigns = () => {
-  const [campaignsBuffer, setCampaignsBuffer] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const fetcher = url => axios.get(url).then(res => res.data);
+  const { data: allCampaigns = [], error, isLoading: loading } = useSWR('http://localhost:5000/api/campaigns', fetcher);
 
-  useEffect(() => {
-    fetchCampaigns();
-  }, []);
-
-  const fetchCampaigns = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/campaigns');
-
-      const allCampaigns = response.data;
-
-      const activeData = allCampaigns.filter(item => item.status === 'ACTIVE');
-      setCampaignsBuffer(activeData);
-    } catch (error) {
-      console.error("Error fetching campaigns:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { displayItems, campaignsBuffer } = useMemo(() => {
+    if (!allCampaigns) return { displayItems: [], campaignsBuffer: [] };
+    const activeData = allCampaigns.filter(item => item.status === 'ACTIVE');
+    const display = activeData.slice(0, 3);
+    return { displayItems: display, campaignsBuffer: activeData };
+  }, [allCampaigns]);
 
   const itemCount = campaignsBuffer.length;
-  // Limit to max 3 items for the home grid as per figma
-  const displayItems = campaignsBuffer.slice(0, 3);
   const colCount = displayItems.length >= 3 ? 3 : displayItems.length;
 
   return (
@@ -42,7 +29,7 @@ const ActiveCampaigns = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-20">
           <div className="max-w-2xl flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h2 className="text-4xl md:text-5xl font-fraunces font-thin text-sage-800 leading-tight tracking-tight">
-              Active Fundraising Projects
+              Active Fundraising Campaigns
             </h2>
             <p className="text-earth-900 font-nunito font-extralight text-lg max-w-xl">
               Choose campaigns aligned with your values and start your journey of sowing seeds of hope today.
@@ -51,7 +38,7 @@ const ActiveCampaigns = () => {
 
           <Link to="/campaigns" className="group shrink-0">
             <Button variant="ghost" className="text-earth-500 hover:text-earth-500 hover:bg-earth-500/5 px-0 font-nunito flex items-center gap-2 text-lg font-light transition-all">
-              View all projects
+              View all campaigns
               <span className="material-symbols-outlined text-[20px] transition-transform group-hover:translate-x-1">arrow_forward</span>
             </Button>
           </Link>

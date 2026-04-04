@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import axios from 'axios';
+import useSWR from 'swr';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CampaignCard from '../components/CampaignCard';
@@ -7,48 +8,40 @@ import { Button } from '../components/ui/button';
 import { CAMPAIGN_TYPES } from '../lib/constant';
 
 const Campaigns = () => {
-  const [campaigns, setCampaigns] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [activeStatus, setActiveStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/campaigns');
-        setCampaigns(response.data);
-      } catch (error) {
-        console.error("Error fetching campaigns:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCampaigns();
-  }, []);
+  const fetcher = url => axios.get(url).then(res => res.data);
+  const { data: campaigns = [], error, isLoading: loading } = useSWR('http://localhost:5000/api/campaigns', fetcher);
 
-  const filteredCampaigns = campaigns.filter(campaign => {
-    const matchesCategory = activeCategory === 'ALL' || campaign.category === activeCategory;
-    const matchesSearch = campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      campaign.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredCampaigns = useMemo(() => {
+    return campaigns.filter(campaign => {
+      const matchesCategory = activeCategory === 'ALL' || campaign.category === activeCategory;
+      const safeTitle = campaign.title || '';
+      const safeDesc = campaign.description || '';
+      const safeSearch = searchQuery || '';
+      const matchesSearch = safeTitle.toLowerCase().includes(safeSearch.toLowerCase()) ||
+        safeDesc.toLowerCase().includes(safeSearch.toLowerCase());
 
-    // Status Logic
-    let matchesStatus = true;
-    if (activeStatus !== 'All') {
-      if (activeStatus === 'Ending Soon') {
-        if (campaign.status === 'ACTIVE' && campaign.endDate) {
-          const daysLeft = (new Date(campaign.endDate) - new Date()) / (1000 * 60 * 60 * 24);
-          matchesStatus = daysLeft >= 0 && daysLeft <= 7;
+      // Status Logic
+      let matchesStatus = true;
+      if (activeStatus !== 'All') {
+        if (activeStatus === 'Ending Soon') {
+          if (campaign.status === 'ACTIVE' && campaign.endDate) {
+            const daysLeft = (new Date(campaign.endDate) - new Date()) / (1000 * 60 * 60 * 24);
+            matchesStatus = daysLeft >= 0 && daysLeft <= 7;
+          } else {
+            matchesStatus = false;
+          }
         } else {
-          matchesStatus = false;
+          matchesStatus = campaign.status === activeStatus.toUpperCase();
         }
-      } else {
-        matchesStatus = campaign.status === activeStatus.toUpperCase();
       }
-    }
 
-    return matchesCategory && matchesSearch && matchesStatus;
-  });
+      return matchesCategory && matchesSearch && matchesStatus;
+    });
+  }, [campaigns, activeCategory, activeStatus, searchQuery]);
 
   const categories = ['ALL', ...Object.keys(CAMPAIGN_TYPES)];
 

@@ -22,20 +22,20 @@ const Hero = () => {
             </h1>
 
             <p className="text-xl md:text-2xl font-nunito font-extralight text-earth-900 leading-relaxed max-w-lg">
-              A decentralized fundraising platform connecting compassionate hearts directly with world-changing projects. Every contribution is verified and tracked on the blockchain.
+              A decentralized fundraising platform connecting compassionate hearts directly with world-changing cam. Every contribution is verified and tracked on the blockchain.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-5">
             <Link to="/campaigns">
-              <Button className="bg-sage-800 hover:bg-sage-900 text-white px-10 py-7 rounded-full text-lg shadow-xl shadow-sage-800/20 transition-all active:scale-[0.98] group flex items-center gap-2">
+              <Button className="bg-sage-800 hover:bg-sage-900 text-white px-10 py-7 rounded-full text-lg shadow-xl shadow-sage-800/20 transition-[transform,colors] active:scale-[0.98] group flex items-center gap-2">
                 Start Donating
-                <span className="material-symbols-outlined transition-transform group-hover:translate-x-1">arrow_forward</span>
+                <span className="material-symbols-outlined transition-transform group-hover:translate-x-1" aria-hidden="true">arrow_forward</span>
               </Button>
             </Link>
             <Link to="/campaigns">
-              <Button variant="outline" className="border-2 border-sage-200 text-sage-800 hover:bg-sage-100/50 px-10 py-7 rounded-full text-lg transition-all font-nunito">
-                Explore Projects
+              <Button variant="outline" className="border-2 border-sage-200 text-sage-800 hover:bg-sage-100/50 px-10 py-7 rounded-full text-lg transition-colors font-nunito">
+                Explore Campaigns
               </Button>
             </Link>
           </div>
@@ -50,6 +50,9 @@ const Hero = () => {
               <img
                 src={heroImage}
                 alt="Community Impact"
+                width="600"
+                height="400"
+                fetchPriority="high"
                 className="w-full h-auto object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
               />
             </div>
@@ -59,7 +62,7 @@ const Hero = () => {
           <div className="absolute bottom-[-20px] right-[-10px] md:right-[-32px] max-w-[320px] bg-[#e5e3d6]/95 backdrop-blur-md p-6 rounded-bl-[24px] rounded-br-[40px] rounded-tl-[32px] rounded-tr-[16px] shadow-2xl border border-white/50 animate-in fade-in zoom-in-95 duration-1000 delay-300">
             <div className="flex items-center gap-4 mb-3">
               <div className="w-10 h-10 bg-[#ffc38f] rounded-full flex items-center justify-center shadow-inner">
-                <span className="material-symbols-outlined text-[#794e25] text-xl">favorite</span>
+                <span className="material-symbols-outlined text-[#794e25] text-xl" aria-hidden="true">favorite</span>
               </div>
               <span className="font-nunito italic font-extralight text-sage-800 text-lg">Social Impact</span>
             </div>

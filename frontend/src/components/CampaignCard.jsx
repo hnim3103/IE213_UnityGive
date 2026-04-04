@@ -16,12 +16,15 @@ const CampaignCard = ({ campaign }) => {
   const softCapProgress = targetEth > 0 ? Math.min((softCapEth / targetEth) * 100, 100) : 0;
 
   return (
-    <Card className="overflow-hidden border-none shadow-[0px_10px_30px_-5px_rgba(69,87,59,0.08)] hover:shadow-[0px_20px_40px_-10px_rgba(69,87,59,0.12)] transition-all duration-500 bg-sage-50 rounded-bl-[24px] rounded-br-[40px] rounded-tl-[32px] rounded-tr-[16px] flex flex-col h-full group">
+    <Card className="overflow-hidden border-none shadow-[0px_10px_30px_-5px_rgba(69,87,59,0.08)] hover:shadow-[0px_20px_40px_-10px_rgba(69,87,59,0.12)] transition-[transform,box-shadow,colors] duration-500 bg-sage-50 rounded-bl-[24px] rounded-br-[40px] rounded-tl-[32px] rounded-tr-[16px] flex flex-col h-full group">
       {/* Image Section */}
       <div className="relative h-60 overflow-hidden">
         <img 
           src={image || "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=1000"} 
           alt={title} 
+          width="380"
+          height="240"
+          loading="lazy"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
         <div className="absolute top-4 left-4">
@@ -71,7 +74,7 @@ const CampaignCard = ({ campaign }) => {
       {/* Footer Action */}
       <CardFooter className="p-8 pt-4 mt-auto">
         <Link to={`/campaigns/${_id}`} className="w-full">
-            <Button className="w-full bg-sage-400 hover:bg-sage-200 text-sage-800 rounded-full py-6 font-nunito font-light transition-all active:scale-[0.98] border-none shadow-none">
+            <Button className="w-full bg-sage-400 hover:bg-sage-200 text-sage-800 rounded-full py-6 font-nunito font-light transition-[colors,transform] active:scale-[0.98] border-none shadow-none">
               Donate Now
             </Button>
         </Link>

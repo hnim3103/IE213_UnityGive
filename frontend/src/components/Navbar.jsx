@@ -29,7 +29,7 @@ const Navbar = () => {
 
   const navLinks = [
     { id: "homepage", label: "Home", path: "/" },
-    { id: "campaigns", label: "Projects", path: "/campaigns" },
+    { id: "campaigns", label: "Campaigns", path: "/campaigns" },
     { id: "about", label: "About Us", path: "/about" },
     { id: "how-it-works", label: "How it Works", path: "/how-it-works" },
   ];
@@ -52,9 +52,9 @@ const Navbar = () => {
               <li key={item.id}>
                 <Link
                   to={item.path}
-                  className={`text-[15px] transition-all duration-200 relative pb-1 ${isActive(item.path)
-                      ? "text-sage-800 font-bold border-b-2 border-earth-500"
-                      : "text-sage-800/70 hover:text-sage-800"
+                  className={`text-[15px] transition-colors duration-200 relative pb-1 ${isActive(item.path)
+                    ? "text-sage-800 font-bold border-b-2 border-earth-500"
+                    : "text-sage-800/70 hover:text-sage-800"
                     }`}
                 >
                   {item.label}
@@ -70,7 +70,7 @@ const Navbar = () => {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-sage-200 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center">
                     {user.avatar ? (
-                      <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                      <img src={user.avatar} alt="avatar" width="40" height="40" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-sage-800 font-bold uppercase">{user.name ? user.name.charAt(0) : "U"}</span>
                     )}
@@ -80,10 +80,10 @@ const Navbar = () => {
                     <span className="text-[11px] text-sage-800/60 capitalize leading-tight">{user.role || "Donor"}</span>
                   </div>
                 </div>
-                <Button 
+                <Button
                   onClick={handleLogout}
-                  variant="outline" 
-                  className="border-sage-800/20 text-sage-800 hover:bg-sage-100 rounded-full font-medium transition-all ml-2 px-6"
+                  variant="outline"
+                  className="border-sage-800/20 text-sage-800 hover:bg-sage-100 rounded-full font-medium transition-colors ml-2 px-6"
                 >
                   Logout
                 </Button>
@@ -91,12 +91,12 @@ const Navbar = () => {
             ) : (
               <>
                 <Link to="/login">
-                  <Button variant="ghost" className="text-sage-800 hover:text-sage-800 hover:bg-sage-800/5 px-6 rounded-full font-medium transition-all">
+                  <Button variant="ghost" className="text-sage-800 hover:text-sage-800 hover:bg-sage-800/5 px-6 rounded-full font-medium transition-colors">
                     Login
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="bg-sage-600 hover:bg-sage-700 text-sage-100 px-8 rounded-full font-medium shadow-[0px_10px_30px_-10px_rgba(69,87,59,0.3)] transition-all">
+                  <Button className="bg-sage-600 hover:bg-sage-700 text-sage-100 px-8 rounded-full font-medium shadow-[0px_10px_30px_-10px_rgba(69,87,59,0.3)] transition-[colors,transform]">
                     Signup
                   </Button>
                 </Link>
@@ -109,8 +109,9 @@ const Navbar = () => {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="text-sage-800 hover:opacity-80 transition-opacity"
+              aria-label="Toggle Menu"
             >
-              <span className="material-symbols-outlined text-3xl">
+              <span className="material-symbols-outlined text-3xl" aria-hidden="true">
                 {isMobileMenuOpen ? 'close' : 'menu'}
               </span>
             </button>
@@ -128,8 +129,8 @@ const Navbar = () => {
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`text-lg block ${isActive(item.path)
-                      ? "text-sage-800 font-bold"
-                      : "text-sage-800/70"
+                    ? "text-sage-800 font-bold"
+                    : "text-sage-800/70"
                     }`}
                 >
                   {item.label}
@@ -142,7 +143,7 @@ const Navbar = () => {
                   <div className="flex items-center gap-3 py-3 px-4 rounded-xl bg-sage-800/5">
                     <div className="w-12 h-12 rounded-full bg-sage-200 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center">
                       {user.avatar ? (
-                        <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                        <img src={user.avatar} alt="avatar" width="48" height="48" className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-sage-800 font-bold text-lg uppercase">{user.name ? user.name.charAt(0) : "U"}</span>
                       )}
@@ -152,12 +153,12 @@ const Navbar = () => {
                       <span className="text-sm text-sage-800/60 capitalize">{user.role || "Donor"}</span>
                     </div>
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => {
                       handleLogout();
                       setIsMobileMenuOpen(false);
-                    }} 
-                    variant="outline" 
+                    }}
+                    variant="outline"
                     className="w-full py-6 border-sage-800/20 text-sage-800 rounded-full font-bold"
                   >
                     Logout

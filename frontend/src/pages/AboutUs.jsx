@@ -99,7 +99,7 @@ const AboutUs = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {milestones.map((m, i) => (
               <div key={i} className="flex flex-col items-center text-center gap-4">
-                <span className="material-symbols-outlined text-4xl text-earth-500">{m.icon}</span>
+                <span className="material-symbols-outlined text-4xl text-earth-500" aria-hidden="true">{m.icon}</span>
                 <div className="flex flex-col">
                   <span className="text-earth-500 font-bold tracking-widest text-sm uppercase">{m.year}</span>
                   <h4 className="text-xl font-fraunces italic mb-2">{m.title}</h4>
@@ -150,8 +150,8 @@ const AboutUs = () => {
               We focus on <strong>Zero Blind Trust</strong>. By requiring IPFS Proof of Impact for every milestone, we ensure that every dollar contributed is backed by immutably stored evidence of real-world change.
             </p>
             <Link to="/campaigns">
-              <Button className="bg-sage-800 hover:bg-sage-900 text-white px-10 py-7 rounded-full text-lg shadow-xl shadow-sage-800/20 transition-all">
-                View On-Chain Projects
+              <Button className="bg-sage-800 hover:bg-sage-900 text-white px-10 py-7 rounded-full text-lg shadow-xl shadow-sage-800/20 transition-colors">
+                View On-Chain
               </Button>
             </Link>
           </div>
@@ -163,9 +163,9 @@ const AboutUs = () => {
               { t: "IPFS Immutability", d: "Evidence and reports are stored on IPFS, preventing any retrospective modification of data.", i: "storage" },
               { t: "Smart Security", d: "Open-source smart contracts audited to prevent fraud and protect the donation pool.", i: "verified" }
             ].map((v, i) => (
-              <div key={i} className="flex gap-6 p-8 bg-white/50 rounded-3xl border border-white hover:bg-white transition-all group">
+              <div key={i} className="flex gap-6 p-8 bg-white/50 rounded-3xl border border-white hover:bg-white transition-colors group">
                 <div className="w-12 h-12 shrink-0 bg-sage-800/5 rounded-xl flex items-center justify-center group-hover:bg-earth-500 group-hover:text-white transition-colors">
-                  <span className="material-symbols-outlined">{v.i}</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">{v.i}</span>
                 </div>
                 <div>
                   <h4 className="text-xl font-bold text-sage-800 mb-1">{v.t}</h4>
@@ -190,7 +190,7 @@ const AboutUs = () => {
             {team.map((member, i) => (
               <div key={i} className="group flex flex-col items-center">
                 <div className="relative w-full aspect-[3/4] mb-6 overflow-hidden rounded-[40px] border-4 border-white shadow-xl transition-transform duration-500 group-hover:-translate-y-3">
-                  <img src={member.img} alt={member.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                  <img src={member.img} alt={member.name} width="300" height="400" loading="lazy" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-[filter] duration-700" />
                   <div className="absolute inset-0 bg-sage-800/10 group-hover:bg-transparent transition-colors" />
                 </div>
                 <h4 className="text-xl font-fraunces italic text-sage-800 text-center">{member.name}</h4>
@@ -216,19 +216,19 @@ const AboutUs = () => {
             </div>
             <div className="grid grid-cols-2 gap-8 grayscale opacity-60">
               <div className="flex flex-col items-center gap-2 p-6 border border-earth-500/10 rounded-2xl">
-                <span className="material-symbols-outlined text-3xl">token</span>
+                <span className="material-symbols-outlined text-3xl" aria-hidden="true">token</span>
                 <span className="text-[12px] font-bold tracking-[2px] uppercase">Ethereum v6</span>
               </div>
               <div className="flex flex-col items-center gap-2 p-6 border border-earth-500/10 rounded-2xl">
-                <span className="material-symbols-outlined text-3xl">data_object</span>
+                <span className="material-symbols-outlined text-3xl" aria-hidden="true">data_object</span>
                 <span className="text-[12px] font-bold tracking-[2px] uppercase">Solidity</span>
               </div>
               <div className="flex flex-col items-center gap-2 p-6 border border-earth-500/10 rounded-2xl">
-                <span className="material-symbols-outlined text-3xl">link</span>
+                <span className="material-symbols-outlined text-3xl" aria-hidden="true">link</span>
                 <span className="text-[12px] font-bold tracking-[2px] uppercase">IPFS Protocol</span>
               </div>
               <div className="flex flex-col items-center gap-2 p-6 border border-earth-500/10 rounded-2xl">
-                <span className="material-symbols-outlined text-3xl">verified_user</span>
+                <span className="material-symbols-outlined text-3xl" aria-hidden="true">verified_user</span>
                 <span className="text-[12px] font-bold tracking-[2px] uppercase">Smart Audit</span>
               </div>
             </div>
