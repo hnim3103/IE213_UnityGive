@@ -3,7 +3,6 @@ dotenv.config();
 
 import express from "express";
 import campaignsRoute from "./routes/campaignsRouters.js";
-import organizationsRoute from "./routes/organizationsRouters.js";
 import donationRoute from "./routes/donationsRouters.js";
 import authRoute from "./routes/authRouters.js";
 import usersRoute from "./routes/userRouters.js";
@@ -22,15 +21,18 @@ app.use(express.json());
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/campaigns", campaignsRoute);
-app.use("/api/organizations", organizationsRoute);
 app.use("/api/donations", donationRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/comments", commentRoute);
 app.use("/api/users", usersRoute);
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-    console.log(`Swagger docs at http://localhost:${PORT}/docs`);
+if (process.env.NODE_ENV !== "test") {
+  connectDB().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}`);
+      console.log(`Swagger docs at http://localhost:${PORT}/docs`);
+    });
   });
-});
+}
+
+export default app;

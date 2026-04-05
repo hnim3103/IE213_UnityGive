@@ -22,7 +22,7 @@ const Hero = () => {
             </h1>
 
             <p className="text-xl md:text-2xl font-nunito font-extralight text-earth-900 leading-relaxed max-w-lg">
-              A decentralized fundraising platform connecting compassionate hearts directly with world-changing projects. Every contribution is verified and tracked on the blockchain.
+              Our organization is committed to changing the world through transparent, milestone-based fundraising. Join us in our mission and track every contribution directly on the blockchain.
             </p>
           </div>
 

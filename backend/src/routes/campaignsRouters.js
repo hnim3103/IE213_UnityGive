@@ -1,6 +1,6 @@
 import express from "express"
 import { getAllCampaigns, getCampaignByID, createCampaign, updateCampaign, deleteCampaign } from "../controllers/campaignsControllers.js";
-import { verifyToken, verifyOrganization } from "../middleware/verifyToken.js";
+import { verifyToken, verifyAdmin } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
@@ -80,7 +80,7 @@ router.get("/:id", getCampaignByID);
  *       500:
  *         description: Internal server error
  */
-router.post("/", verifyOrganization, createCampaign);
+router.post("/", verifyAdmin, createCampaign);
 
 /**
  * @swagger
@@ -108,7 +108,7 @@ router.post("/", verifyOrganization, createCampaign);
  *       500:
  *         description: Internal server error
  */
-router.put("/:id", verifyOrganization, updateCampaign);
+router.put("/:id", verifyAdmin, updateCampaign);
 
 /**
  * @swagger
@@ -130,6 +130,6 @@ router.put("/:id", verifyOrganization, updateCampaign);
  *       500:
  *         description: Internal server error
  */
-router.delete("/:id", verifyOrganization, deleteCampaign);
+router.delete("/:id", verifyAdmin, deleteCampaign);
 
 export default router;

@@ -101,12 +101,6 @@ const campaignSchema = new mongoose.Schema({
 
   endDate: Date,
 
-  orgId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Organization",
-    required: true
-  },
-
   creatorId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

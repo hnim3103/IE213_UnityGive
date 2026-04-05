@@ -3,7 +3,6 @@ import Campaign from "../models/Campaign.js";
 export const getAllCampaigns = async (req, res) => {
   try {
     const campaigns = await Campaign.find()
-      .populate("orgId", "name logo orgWalletAddress isVerified")
       .populate("creatorId", "name avatar walletAddress")
       .sort({ createdAt: -1 });
     res.status(200).json(campaigns);
@@ -16,7 +15,6 @@ export const getAllCampaigns = async (req, res) => {
 export const getCampaignByID = async (req, res) => {
   try {
     const campaign = await Campaign.findById(req.params.id)
-      .populate("orgId", "name logo orgWalletAddress isVerified description website")
       .populate("creatorId", "name avatar walletAddress")
       .populate("ambassadors", "name avatar walletAddress");
     if (!campaign) {
@@ -33,7 +31,7 @@ export const createCampaign = async (req, res) => {
     const {
       title, description, totalGoalAmount, softCapAmount, requiredVotes,
       milestones, councilMembers, category, image,
-      startDate, endDate, orgId, creatorId, ambassadors
+      startDate, endDate, creatorId, ambassadors
     } = req.body;
 
     // In a production environment, you might dispatch the Web3 transaction here 
@@ -52,7 +50,6 @@ export const createCampaign = async (req, res) => {
       image,
       startDate,
       endDate,
-      orgId,
       creatorId,
       ambassadors
     });

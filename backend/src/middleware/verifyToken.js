@@ -21,16 +21,6 @@ export const verifyToken = (req, res, next) => {
     }
 };
 
-export const verifyOrganization = (req, res, next) => {
-    verifyToken(req, res, () => {
-        if (req.user && req.user.role === "organization") {
-            next();
-        } else {
-            res.status(403).json({ message: "Organization access required" });
-        }
-    });
-};
-
 export const verifyAdmin = (req, res, next) => {
     verifyToken(req, res, () => {
         if (req.user && req.user.role === "admin") {
