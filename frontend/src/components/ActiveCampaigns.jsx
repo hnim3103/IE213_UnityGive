@@ -42,10 +42,10 @@ const ActiveCampaigns = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-20">
           <div className="max-w-2xl flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h2 className="text-4xl md:text-5xl font-fraunces font-thin text-sage-800 leading-tight tracking-tight">
-              Active Fundraising Projects
+              Our Ongoing Initiatives
             </h2>
             <p className="text-earth-900 font-nunito font-extralight text-lg max-w-xl">
-              Choose campaigns aligned with your values and start your journey of sowing seeds of hope today.
+              Support our various projects and see exactly how your donation makes an impact at every milestone.
             </p>
           </div>
 

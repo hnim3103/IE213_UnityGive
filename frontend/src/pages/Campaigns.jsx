@@ -63,10 +63,10 @@ const Campaigns = () => {
 
         <div className="max-w-7xl mx-auto relative z-10 text-center">
           <h1 className="text-5xl md:text-6xl font-fraunces font-thin text-sage-800 mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            Our Fundraising Campaigns
+            Our Initiatives
           </h1>
           <p className="text-earth-900 font-nunito font-extralight text-xl max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700">
-            Discover impactful initiatives that bring light and hope to communities in need around the world.
+            Transparent, milestone-based projects where every contribution is tracked and verified.
           </p>
         </div>
       </section>
