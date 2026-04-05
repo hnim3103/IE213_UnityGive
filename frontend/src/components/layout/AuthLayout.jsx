@@ -112,7 +112,7 @@ export const AuthLayout = ({
             {isConnecting ? (
               <span className="material-symbols-outlined animate-spin">refresh</span>
             ) : (
-              <img src={metaMaskIcon} alt="MetaMask" className="w-5 h-5" />
+              <img src={metaMaskIcon} alt="MetaMask logo" className="w-5 h-5" />
             )}
             <span>
               {isConnecting ? "Connecting..." : "Connect with MetaMask"}

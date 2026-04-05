@@ -49,7 +49,8 @@ const Hero = () => {
             <div className="overflow-hidden rounded-bl-[32px] rounded-br-[48px] rounded-tl-[40px] rounded-tr-[24px] shadow-2xl border-4 border-white/50 bg-sage-100">
               <img
                 src={heroImage}
-                alt="Community Impact"
+                alt="Community Impact Example"
+                fetchpriority="high"
                 className="w-full h-auto object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
               />
             </div>

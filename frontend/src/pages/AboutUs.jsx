@@ -190,7 +190,7 @@ const AboutUs = () => {
             {team.map((member, i) => (
               <div key={i} className="group flex flex-col items-center">
                 <div className="relative w-full aspect-[3/4] mb-6 overflow-hidden rounded-[40px] border-4 border-white shadow-xl transition-transform duration-500 group-hover:-translate-y-3">
-                  <img src={member.img} alt={member.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                  <img src={member.img} alt={member.name} loading="lazy" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
                   <div className="absolute inset-0 bg-sage-800/10 group-hover:bg-transparent transition-colors" />
                 </div>
                 <h4 className="text-xl font-fraunces italic text-sage-800 text-center">{member.name}</h4>

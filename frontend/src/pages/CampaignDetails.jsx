@@ -77,7 +77,8 @@ const CampaignDetails = () => {
             <div className="relative overflow-hidden rounded-[48px] shadow-2xl border-8 border-white group">
               <img 
                 src={campaign.image || "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=1000"} 
-                alt={campaign.title} 
+                alt={campaign.title || "Campaign Header Image"} 
+                fetchpriority="high"
                 className="w-full aspect-video object-cover"
               />
               <div className="absolute top-8 left-8">
@@ -96,7 +97,7 @@ const CampaignDetails = () => {
                  <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-sage-200 border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
                        {campaign.creatorId?.avatar ? (
-                         <img src={campaign.creatorId.avatar} alt="avatar" className="w-full h-full object-cover" />
+                         <img src={campaign.creatorId.avatar} alt="Creator avatar" loading="lazy" className="w-full h-full object-cover" />
                        ) : (
                          <span className="text-sage-800 font-bold">{campaign.creatorId?.name?.charAt(0) || 'O'}</span>
                        )}

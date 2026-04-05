@@ -1,7 +1,7 @@
 import React from 'react';
 import { Wallet, Heart, ShieldCheck, TrendingUp } from 'lucide-react';
 
-const StepCard = ({ id, title, description, icon: Icon, index }) => (
+const StepCard = ({ id, title, description, icon: Icon }) => (
   <div 
     className="group relative flex flex-col items-center p-8 bg-white/40 backdrop-blur-sm rounded-[40px] border border-white/60 hover:bg-white/80 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-sage-200/50"
     role="listitem"
@@ -11,7 +11,7 @@ const StepCard = ({ id, title, description, icon: Icon, index }) => (
     </div>
     
     <div className="mt-4 mb-6 p-5 bg-sage-100 rounded-2xl text-sage-800 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-      <Icon size={32} strokeWidth={1.5} />
+      <Icon size={32} strokeWidth={1.5} aria-hidden="true" />
     </div>
 
     <h3 className="text-2xl font-fraunces text-sage-900 mb-4 text-center">
@@ -33,25 +33,25 @@ const HowItWorks = () => {
       id: 1,
       title: "Connect & Secure",
       description: "Link your Web3 wallet seamlessly. We prioritize your security and data privacy from the very first step.",
-      icon: Wallet,
+      icon: Wallet
     },
     {
       id: 2,
       title: "Discover Purpose",
       description: "Explore campaigns that align with your values. From education to environment, find where your seeds will grow best.",
-      icon: Heart,
+      icon: Heart
     },
     {
       id: 3,
       title: "Sow with Confidence",
       description: "Your donation is held in a transparent smart contract, locked until verified milestones are achieved.",
-      icon: ShieldCheck,
+      icon: ShieldCheck
     },
     {
       id: 4,
       title: "Witness the Growth",
       description: "Track real-time progress and see exactly how your contribution is making a tangible difference in the world.",
-      icon: TrendingUp,
+      icon: TrendingUp
     }
   ];
 
@@ -78,8 +78,8 @@ const HowItWorks = () => {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 pt-10"
           role="list"
         >
-          {steps.map((step, index) => (
-            <StepCard key={step.id} {...step} index={index} />
+          {steps.map((step) => (
+            <StepCard key={step.id} {...step} />
           ))}
         </div>
 

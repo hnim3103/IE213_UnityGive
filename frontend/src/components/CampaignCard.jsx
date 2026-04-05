@@ -21,7 +21,8 @@ const CampaignCard = ({ campaign }) => {
       <div className="relative h-60 overflow-hidden">
         <img 
           src={image || "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=1000"} 
-          alt={title} 
+          alt={title || "Campaign image"} 
+          loading="lazy"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
         <div className="absolute top-4 left-4">
@@ -58,13 +59,13 @@ const CampaignCard = ({ campaign }) => {
             className="h-full bg-sage-800 rounded-full transition-all duration-1000 ease-out absolute top-0 left-0 z-10"
             style={{ width: `${progress}%` }}
           />
-          {softCapProgress > 0 && (
+          {softCapProgress > 0 ? (
              <div 
                className="h-full w-1 bg-[#ffc38f] absolute top-0 z-20"
                style={{ left: `${softCapProgress}%` }}
                title={`Soft Cap: ${softCapEth} ETH`}
              />
-          )}
+          ) : null}
         </div>
       </CardContent>
 
