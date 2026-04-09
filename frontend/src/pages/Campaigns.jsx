@@ -1,31 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import useSWR from 'swr';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CampaignCard from '../components/CampaignCard';
 import { Button } from '../components/ui/button';
 import { CAMPAIGN_TYPES } from '../lib/constant';
 
+const fetcher = url => axios.get(url).then(res => res.data);
+
 const Campaigns = () => {
-  const [campaigns, setCampaigns] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data, error, isLoading: loading } = useSWR('http://localhost:5000/api/campaigns', fetcher);
+  const campaigns = data || [];
+  
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [activeStatus, setActiveStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/campaigns');
-        setCampaigns(response.data);
-      } catch (error) {
-        console.error("Error fetching campaigns:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCampaigns();
-  }, []);
 
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesCategory = activeCategory === 'ALL' || campaign.category === activeCategory;
@@ -86,7 +76,7 @@ const Campaigns = () => {
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-nunito font-medium transition-all whitespace-nowrap ${activeCategory === cat
+                    className={`px-5 py-2.5 rounded-full text-sm font-nunito font-medium transition-colors whitespace-nowrap shadow-sm ${activeCategory === cat
                         ? "bg-sage-800 text-white shadow-md shadow-sage-800/20"
                         : "bg-[#efece4] text-sage-800 hover:bg-[#e6e2d6] border border-transparent"
                       }`}
@@ -107,7 +97,7 @@ const Campaigns = () => {
                   <button
                     key={status}
                     onClick={() => setActiveStatus(status)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-nunito font-medium transition-all whitespace-nowrap ${activeStatus === status
+                    className={`px-5 py-2.5 rounded-full text-sm font-nunito font-medium transition-colors whitespace-nowrap shadow-sm ${activeStatus === status
                         ? "bg-sage-800 text-white shadow-md shadow-sage-800/20"
                         : "bg-[#efece4] text-sage-800 hover:bg-[#e6e2d6] border border-transparent"
                       }`}
@@ -129,7 +119,7 @@ const Campaigns = () => {
               placeholder="Search campaigns..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-6 py-4 bg-white/60 border border-sage-800/10 rounded-full font-nunito focus:outline-none focus:ring-2 focus:ring-earth-500/20 focus:bg-white transition-all text-sage-800 shadow-sm hover:shadow-md"
+              className="w-full pl-12 pr-6 py-4 bg-white/60 border border-sage-800/10 rounded-full font-nunito focus:outline-none focus:ring-2 focus:ring-earth-500/20 focus:bg-white transition-colors text-sage-800 shadow-sm hover:shadow-md"
             />
           </div>
         </div>

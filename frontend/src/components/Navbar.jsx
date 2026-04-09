@@ -54,7 +54,7 @@ const Navbar = () => {
               <li key={item.id}>
                 <Link
                   to={item.path}
-                  className={`text-[15px] transition-all duration-200 relative pb-1 ${isActive(item.path)
+                  className={`text-[15px] transition-colors duration-200 relative pb-1 ${isActive(item.path)
                       ? "text-sage-800 font-bold border-b-2 border-earth-500"
                       : "text-sage-800/70 hover:text-sage-800"
                     }`}
@@ -71,7 +71,7 @@ const Navbar = () => {
               <div className="relative">
                 <button 
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-3 p-1 rounded-full hover:bg-sage-800/5 transition-all outline-none"
+                  className="flex items-center gap-3 p-1 rounded-full hover:bg-sage-800/5 transition-colors outline-none"
                 >
                   <div className="w-10 h-10 rounded-full bg-sage-200 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center">
                     {user.avatar ? (
@@ -109,12 +109,12 @@ const Navbar = () => {
             ) : (
               <>
                 <Link to="/login">
-                  <Button variant="ghost" className="text-sage-800 hover:text-sage-800 hover:bg-sage-800/5 px-6 rounded-full font-medium transition-all">
+                  <Button variant="ghost" className="text-sage-800 hover:text-sage-800 hover:bg-sage-800/5 px-6 rounded-full font-medium transition-colors">
                     Login
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="bg-sage-600 hover:bg-sage-700 text-sage-100 px-8 rounded-full font-medium shadow-[0px_10px_30px_-10px_rgba(69,87,59,0.3)] transition-all">
+                  <Button className="bg-sage-600 hover:bg-sage-700 text-sage-100 px-8 rounded-full font-medium shadow-[0px_10px_30px_-10px_rgba(69,87,59,0.3)] transition-transform hover:-translate-y-[1px]">
                     Signup
                   </Button>
                 </Link>

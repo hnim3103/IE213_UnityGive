@@ -16,7 +16,7 @@ const CampaignCard = ({ campaign }) => {
   const softCapProgress = targetEth > 0 ? Math.min((softCapEth / targetEth) * 100, 100) : 0;
 
   return (
-    <Card className="overflow-hidden border-none shadow-[0px_10px_30px_-5px_rgba(69,87,59,0.08)] hover:shadow-[0px_20px_40px_-10px_rgba(69,87,59,0.12)] transition-all duration-500 bg-sage-50 rounded-bl-[24px] rounded-br-[40px] rounded-tl-[32px] rounded-tr-[16px] flex flex-col h-full group">
+    <Card className="overflow-hidden border-none shadow-[0px_10px_30px_-5px_rgba(69,87,59,0.08)] hover:shadow-[0px_20px_40px_-10px_rgba(69,87,59,0.12)] transition-shadow duration-500 bg-sage-50 rounded-bl-[24px] rounded-br-[40px] rounded-tl-[32px] rounded-tr-[16px] flex flex-col h-full group">
       {/* Image Section */}
       <div className="relative h-60 overflow-hidden">
         <img 
@@ -56,7 +56,7 @@ const CampaignCard = ({ campaign }) => {
         {/* Progress Bar */}
         <div className="h-2 w-full bg-sage-400 rounded-full overflow-hidden relative" title={softCapEth > 0 ? `Soft Cap: ${softCapEth} ETH` : ""}>
           <div 
-            className="h-full bg-sage-800 rounded-full transition-all duration-1000 ease-out absolute top-0 left-0 z-10"
+            className="h-full bg-sage-800 rounded-full transition-[width] duration-1000 ease-out absolute top-0 left-0 z-10"
             style={{ width: `${progress}%` }}
           />
           {softCapProgress > 0 ? (
@@ -72,7 +72,7 @@ const CampaignCard = ({ campaign }) => {
       {/* Footer Action */}
       <CardFooter className="p-8 pt-4 mt-auto">
         <Link to={`/campaigns/${_id}`} className="w-full">
-            <Button className="w-full bg-sage-400 hover:bg-sage-200 text-sage-800 rounded-full py-6 font-nunito font-light transition-all active:scale-[0.98] border-none shadow-none">
+            <Button className="w-full bg-sage-400 hover:bg-sage-200 text-sage-800 rounded-full py-6 font-nunito font-light transition-colors active:scale-[0.98] border-none shadow-none">
               Donate Now
             </Button>
         </Link>

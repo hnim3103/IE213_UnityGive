@@ -13,6 +13,9 @@ const userSchema = new mongoose.Schema({
     type: String
   },
 
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
+
   walletAddress: {
     type: String,
     unique: true,

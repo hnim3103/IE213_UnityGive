@@ -30,7 +30,9 @@ export declare namespace UnityGive {
     totalGoalAmount: BigNumberish;
     currentAmount: BigNumberish;
     requiredVotes: BigNumberish;
+    deadline: BigNumberish;
     isActive: boolean;
+    isSuccessful: boolean;
   };
 
   export type CampaignStructOutput = [
@@ -39,14 +41,18 @@ export declare namespace UnityGive {
     totalGoalAmount: bigint,
     currentAmount: bigint,
     requiredVotes: bigint,
-    isActive: boolean
+    deadline: bigint,
+    isActive: boolean,
+    isSuccessful: boolean
   ] & {
     mongoId: string;
     orgWallet: string;
     totalGoalAmount: bigint;
     currentAmount: bigint;
     requiredVotes: bigint;
+    deadline: bigint;
     isActive: boolean;
+    isSuccessful: boolean;
   };
 
   export type MilestoneStruct = {
@@ -89,6 +95,7 @@ export interface UnityGiveInterface extends Interface {
       | "isCouncilMember"
       | "refund"
       | "registerCampaign"
+      | "topUpCampaign"
       | "uploadProofOfImpact"
       | "voteApproveMilestone"
   ): FunctionFragment;
@@ -163,8 +170,13 @@ export interface UnityGiveInterface extends Interface {
       BigNumberish,
       AddressLike[],
       BigNumberish,
-      BigNumberish[]
+      BigNumberish[],
+      BigNumberish
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "topUpCampaign",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "uploadProofOfImpact",
@@ -211,6 +223,10 @@ export interface UnityGiveInterface extends Interface {
   decodeFunctionResult(functionFragment: "refund", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "registerCampaign",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "topUpCampaign",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -467,13 +483,15 @@ export interface UnityGive extends BaseContract {
   campaigns: TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [string, string, bigint, bigint, bigint, boolean] & {
+      [string, string, bigint, bigint, bigint, bigint, boolean, boolean] & {
         mongoId: string;
         orgWallet: string;
         totalGoalAmount: bigint;
         currentAmount: bigint;
         requiredVotes: bigint;
+        deadline: bigint;
         isActive: boolean;
+        isSuccessful: boolean;
       }
     ],
     "view"
@@ -532,10 +550,17 @@ export interface UnityGive extends BaseContract {
       goalAmount: BigNumberish,
       councilMembers: AddressLike[],
       requiredVotes: BigNumberish,
-      milestoneAmounts: BigNumberish[]
+      milestoneAmounts: BigNumberish[],
+      deadline: BigNumberish
     ],
     [bigint],
     "nonpayable"
+  >;
+
+  topUpCampaign: TypedContractMethod<
+    [campaignId: BigNumberish],
+    [void],
+    "payable"
   >;
 
   uploadProofOfImpact: TypedContractMethod<
@@ -580,13 +605,15 @@ export interface UnityGive extends BaseContract {
   ): TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [string, string, bigint, bigint, bigint, boolean] & {
+      [string, string, bigint, bigint, bigint, bigint, boolean, boolean] & {
         mongoId: string;
         orgWallet: string;
         totalGoalAmount: bigint;
         currentAmount: bigint;
         requiredVotes: bigint;
+        deadline: bigint;
         isActive: boolean;
+        isSuccessful: boolean;
       }
     ],
     "view"
@@ -647,11 +674,15 @@ export interface UnityGive extends BaseContract {
       goalAmount: BigNumberish,
       councilMembers: AddressLike[],
       requiredVotes: BigNumberish,
-      milestoneAmounts: BigNumberish[]
+      milestoneAmounts: BigNumberish[],
+      deadline: BigNumberish
     ],
     [bigint],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "topUpCampaign"
+  ): TypedContractMethod<[campaignId: BigNumberish], [void], "payable">;
   getFunction(
     nameOrSignature: "uploadProofOfImpact"
   ): TypedContractMethod<

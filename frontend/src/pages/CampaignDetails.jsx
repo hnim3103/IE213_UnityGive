@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import useSWR from 'swr';
+import { ethers } from 'ethers';
+import UnityGive from '../lib/UnityGive.json';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Button } from '../components/ui/button';
@@ -9,26 +12,66 @@ import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { toast } from 'sonner';
 
+const fetcher = url => axios.get(url).then(res => res.data);
+
 const CampaignDetails = () => {
   const { id } = useParams();
-  const [campaign, setCampaign] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { data: campaign, error, isLoading: loading, mutate } = useSWR(`http://localhost:5000/api/campaigns/${id}`, fetcher);
   const [donationAmount, setDonationAmount] = useState('');
+  const [isDonating, setIsDonating] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const fetchCampaign = async () => {
-      try {
-        const response = await axios.get(`http://localhost:5000/api/campaigns/${id}`);
-        setCampaign(response.data);
-      } catch (error) {
-        console.error("Error fetching campaign:", error);
-        toast.error("Failed to load campaign details");
-      } finally {
-        setLoading(false);
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleDonate = async () => {
+    try {
+      if (!window.ethereum) {
+        toast.error("Please install MetaMask to donate.");
+        return;
       }
-    };
-    fetchCampaign();
-  }, [id]);
+      if (!donationAmount || Number(donationAmount) <= 0) {
+        toast.error("Please enter a valid donation amount in ETH.");
+        return;
+      }
+      
+      const onChainId = campaign.onChainCampaignId;
+      if (onChainId === undefined || onChainId === null) {
+        toast.error("Campaign is not synced with Blockchain.");
+        return;
+      }
+
+      setIsDonating(true);
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = await provider.getSigner();
+
+      const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
+      if (!contractAddress) throw new Error("Contract address not configured.");
+
+      const contract = new ethers.Contract(contractAddress, UnityGive.abi, signer);
+      const parsedAmount = ethers.parseEther(donationAmount.toString());
+
+      const tx = await contract.donate(onChainId, { value: parsedAmount });
+      toast.info("Transaction sent. Waiting for confirmation…");
+      
+      await tx.wait();
+      toast.success("Donation successful!");
+      
+      setDonationAmount('');
+      mutate(); // Re-fetch the campaign data
+    } catch (error) {
+      console.error(error);
+      toast.error(error.reason || error.message || "Donation failed");
+    } finally {
+      setIsDonating(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -46,6 +89,10 @@ const CampaignDetails = () => {
     );
   }
 
+  if (error) {
+    toast.error("Failed to load campaign details");
+  }
+
   if (!campaign) {
     return (
       <div className="min-h-screen bg-sage-bg">
@@ -53,7 +100,7 @@ const CampaignDetails = () => {
         <div className="max-w-7xl mx-auto px-8 py-32 text-center">
           <h1 className="text-4xl font-fraunces text-sage-800">Campaign not found</h1>
           <Link to="/campaigns">
-            <Button className="mt-8 bg-sage-800 text-white rounded-full px-8">Back to Projects</Button>
+            <Button className="mt-8 bg-sage-800 text-white rounded-full px-8 hover:bg-sage-900 transition-colors">Back to Projects</Button>
           </Link>
         </div>
         <Footer />
@@ -64,6 +111,11 @@ const CampaignDetails = () => {
   const targetEth = campaign.totalGoalAmount ? Number(campaign.totalGoalAmount) / 1e18 : 0;
   const raisedEth = campaign.currentAmount ? Number(campaign.currentAmount) / 1e18 : 0;
   const progress = targetEth > 0 ? Math.min((raisedEth / targetEth) * 100, 100) : 0;
+  
+  const formatter = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 3,
+  });
 
   return (
     <div className="min-h-screen bg-sage-bg selection:bg-sage-800 selection:text-white font-nunito">
@@ -125,7 +177,7 @@ const CampaignDetails = () => {
                 <h3 className="text-3xl font-fraunces font-thin text-sage-800">Impact Milestones</h3>
                 <div className="flex flex-col gap-6">
                   {campaign.milestones?.map((milestone, index) => (
-                    <div key={index} className="bg-white/40 backdrop-blur-sm p-8 rounded-[32px] border border-white/50 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all hover:bg-white/60">
+                    <div key={index} className="bg-white/40 backdrop-blur-sm p-8 rounded-[32px] border border-white/50 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors hover:bg-white/60">
                        <div className="flex items-center gap-6">
                           <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold ${milestone.isApproved ? 'bg-sage-800 text-white' : 'bg-sage-100 text-sage-800'}`}>
                              {index + 1}
@@ -133,7 +185,7 @@ const CampaignDetails = () => {
                           <div className="flex flex-col gap-1">
                              <h4 className="text-xl font-light text-sage-800">{milestone.title || `Phase ${index + 1}`}</h4>
                              <p className="text-sm font-extralight text-earth-900/70">
-                                Target: {(Number(milestone.amount) / 1e18).toFixed(3)} ETH
+                                Target: {formatter.format(Number(milestone.amount) / 1e18)} ETH
                              </p>
                           </div>
                        </div>
@@ -162,20 +214,20 @@ const CampaignDetails = () => {
               <div className="bg-[#e5e3d6] p-10 rounded-[48px] shadow-xl border border-white/50 flex flex-col gap-8">
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-end">
-                    <span className="text-5xl font-fraunces font-thin text-sage-800">
-                      {raisedEth.toFixed(3)}
+                    <span className="text-5xl font-fraunces font-thin text-sage-800 tabular-nums">
+                      {formatter.format(raisedEth)}
                       <span className="text-2xl ml-2 font-nunito uppercase tracking-tighter opacity-60">ETH</span>
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-sm font-light text-sage-800/70">
-                    <span>raised of {targetEth.toFixed(1)} ETH goal</span>
-                    <span>{Math.round(progress)}%</span>
+                    <span>raised of {formatter.format(targetEth)} ETH goal</span>
+                    <span className="tabular-nums">{Math.round(progress)}%</span>
                   </div>
                 </div>
 
                 <div className="h-3 w-full bg-white/50 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-sage-800 rounded-full transition-all duration-1000 ease-out"
+                    className="h-full bg-sage-800 rounded-full transition-[width] duration-1000 ease-out"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -187,14 +239,20 @@ const CampaignDetails = () => {
                       placeholder="0.1" 
                       value={donationAmount}
                       onChange={(e) => setDonationAmount(e.target.value)}
-                      className="w-full bg-white/60 border border-sage-800/10 rounded-full py-5 px-8 focus:outline-none focus:ring-2 focus:ring-sage-800/20 text-xl font-light text-sage-800 transition-all"
+                      className="w-full bg-white/60 border border-sage-800/10 rounded-full py-5 px-8 focus:outline-none focus:ring-2 focus:ring-sage-800/20 text-xl font-light text-sage-800 transition-colors"
                     />
                     <span className="absolute right-8 top-1/2 -translate-y-1/2 text-sage-800/40 font-bold">ETH</span>
                   </div>
 
-                  <Button className="w-full bg-sage-800 hover:bg-sage-900 text-white rounded-full py-8 text-xl shadow-lg transition-all active:scale-[0.98]">
-                    Donate Now
-                  </Button>
+                  {!user ? (
+                    <Button onClick={() => navigate('/login')} className="w-full bg-sage-800 hover:bg-sage-900 text-white rounded-full py-8 text-xl shadow-lg transition-transform active:scale-[0.98]">
+                      Login to Donate
+                    </Button>
+                  ) : (
+                    <Button onClick={handleDonate} disabled={isDonating} className="w-full bg-sage-800 hover:bg-sage-900 text-white rounded-full py-8 text-xl shadow-lg transition-transform active:scale-[0.98] disabled:opacity-70">
+                      {isDonating ? "Processing…" : "Donate Now"}
+                    </Button>
+                  )}
                   
                   <p className="text-center text-[12px] font-extralight text-earth-900/60 px-4">
                     By donating, you agree to our terms. Funds are held in a transparent smart contract and released only upon verified impact milestones.

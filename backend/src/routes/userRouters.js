@@ -2,6 +2,7 @@ import express from "express";
 import {
     getUserProfile,
     updateUserProfile,
+    getUserDashboardData,
     getUserById,
     getAllUsers
 } from "../controllers/userControllers.js";
@@ -35,6 +36,24 @@ const router = express.Router();
  *         description: Internal server error
  */
 router.get("/profile", verifyToken, getUserProfile);
+
+/**
+ * @swagger
+ * /api/users/profile/dashboard:
+ *   get:
+ *     summary: Get user dashboard metrics and campaigns
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard data including stats, campaigns, and impact feed
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/profile/dashboard", verifyToken, getUserDashboardData);
 
 /**
  * @swagger

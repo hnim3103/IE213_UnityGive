@@ -2,6 +2,8 @@ import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { ethers } from "ethers";
+import crypto from "crypto";
+import sendEmail from "../utils/sendEmail.js";
 
 // Read at call-time, not at import-time, so dotenv has already run
 function getJwtSecret() {
@@ -150,4 +152,63 @@ export async function web3Login(walletAddress, signature) {
       isVerified: user.isVerified,
     },
   };
+}
+
+export async function forgotPasswordService(email) {
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) {
+    throw { status: 404, message: "There is no user with that email address." };
+  }
+
+  // Generate Reset Token (raw)
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // Hash Token securely and set into User object
+  user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes from now
+
+  await user.save();
+
+  // Create reset URL (This sends the token RAW, so the user can send it back to the backend. Backend will rehash to compare)
+  const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+
+  const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please click on the following link or paste this into your browser to complete the process:\n\n${resetUrl}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'UnityGive - Password Reset Request',
+      message
+    });
+
+    return { message: "An email has been sent with recovery instructions." };
+  } catch (err) {
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    console.error("Email could not be sent", err);
+    throw { status: 500, message: "Email could not be sent. Please try again later." };
+  }
+}
+
+export async function resetPasswordService(token, newPassword) {
+  // We recreate the hash from the raw token provided to lookup the user
+  const resetPasswordToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    throw { status: 400, message: "Invalid or expired reset token." };
+  }
+
+  user.passwordHash = await bcrypt.hash(newPassword, 12);
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  return { message: "Password has been successfully updated!" };
 }

@@ -4,6 +4,8 @@ import Signup from './pages/Signup';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Campaigns from './pages/Campaigns';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import CampaignDetails from './pages/CampaignDetails';
 import FAQPage from './pages/FAQPage';
 import AboutUs from './pages/AboutUs';
@@ -11,6 +13,8 @@ import NotFound from './pages/NotFound';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
+import AdminRoute from './components/AdminRoute';
+import CreateCampaign from './pages/CreateCampaign';
 
 function App() {
   return (
@@ -21,11 +25,14 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+          <Route path="/reset-password/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
           <Route path="/campaigns" element={<Campaigns />} />
           <Route path="/campaigns/:id" element={<CampaignDetails />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/admin/campaigns/create" element={<AdminRoute><CreateCampaign /></AdminRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

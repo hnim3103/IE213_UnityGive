@@ -1,5 +1,5 @@
 import express from "express";
-import { signupService, loginService, getWeb3Nonce, web3Login } from "../services/authService.js";
+import { signupService, loginService, getWeb3Nonce, web3Login, forgotPasswordService, resetPasswordService } from "../services/authService.js";
 import { signupSchema } from "../validators/signupValidator.js";
 import { loginSchema } from "../validators/loginValidator.js";
 
@@ -64,6 +64,48 @@ router.post("/login", async (req, res) => {
             return res.status(error.status).json({ message: error.message });
         }
         console.error("Login error:", error);
+        res.status(500).json({ message: "An internal server error occurred" });
+    }
+});
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Request a password reset email
+ *     tags: [Auth]
+ */
+router.post("/forgot-password", async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ message: "Email is required" });
+        
+        const result = await forgotPasswordService(email);
+        res.status(200).json(result);
+    } catch (error) {
+        if (error.status) return res.status(error.status).json({ message: error.message });
+        console.error("Forgot password error:", error);
+        res.status(500).json({ message: "An internal server error occurred" });
+    }
+});
+
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Set a new password matching the valid token
+ *     tags: [Auth]
+ */
+router.post("/reset-password", async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+        if (!token || !newPassword) return res.status(400).json({ message: "Token and newPassword are required" });
+        
+        const result = await resetPasswordService(token, newPassword);
+        res.status(200).json(result);
+    } catch (error) {
+        if (error.status) return res.status(error.status).json({ message: error.message });
+        console.error("Reset password error:", error);
         res.status(500).json({ message: "An internal server error occurred" });
     }
 });
