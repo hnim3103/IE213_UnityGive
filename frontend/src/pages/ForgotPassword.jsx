@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { AuthLayout } from '@/components/layout/AuthLayout';
+import { API_BASE } from '@/lib/api';
 
 const ForgotPassword = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,7 +19,7 @@ const ForgotPassword = () => {
     try {
       setIsSubmitting(true);
 
-      const res = await fetch("http://localhost:5000/api/auth/forgot-password", {
+      const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
@@ -54,12 +55,15 @@ const ForgotPassword = () => {
       <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4">Email Address</label>
+            <label htmlFor="forgot-email" className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4">Email Address</label>
             <input
+              id="forgot-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="hello@nature.org"
+              placeholder="hello@nature.org…"
+              autoComplete="email"
+              spellCheck={false}
               className="w-full px-7 py-4 bg-sage-50/50 border border-sage-300 rounded-full focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-800/30"
             />
           </div>
@@ -70,7 +74,7 @@ const ForgotPassword = () => {
           disabled={isSubmitting}
           className="w-full py-7 bg-sage-800 hover:bg-sage-900 text-white rounded-full text-lg shadow-lg shadow-sage-800/20 transition-all active:scale-[0.98] disabled:opacity-70 font-plus-jakarta"
         >
-          {isSubmitting ? "Sending..." : "Send Reset Link"}
+          {isSubmitting ? "Sending…" : "Send Reset Link"}
         </Button>
       </form>
     </AuthLayout>

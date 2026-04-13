@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { AuthLayout } from '@/components/layout/AuthLayout';
+import { API_BASE } from '@/lib/api';
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -32,7 +33,7 @@ const ResetPassword = () => {
     try {
       setIsSubmitting(true);
 
-      const res = await fetch("http://localhost:5000/api/auth/reset-password", {
+      const res = await fetch(`${API_BASE}/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, newPassword: password })
@@ -67,22 +68,26 @@ const ResetPassword = () => {
       <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4">New Password</label>
+            <label htmlFor="reset-password" className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4">New Password</label>
             <input
+              id="reset-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              autoComplete="new-password"
               className="w-full px-7 py-4 bg-sage-50/50 border border-sage-300 rounded-full focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-800/30"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4">Confirm New Password</label>
+            <label htmlFor="reset-confirm" className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4">Confirm New Password</label>
             <input
+              id="reset-confirm"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
+              autoComplete="new-password"
               className="w-full px-7 py-4 bg-sage-50/50 border border-sage-300 rounded-full focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-800/30"
             />
           </div>
@@ -93,7 +98,7 @@ const ResetPassword = () => {
           disabled={isSubmitting}
           className="w-full py-7 bg-sage-800 hover:bg-sage-900 text-white rounded-full text-lg shadow-lg shadow-sage-800/20 transition-all active:scale-[0.98] disabled:opacity-70 font-plus-jakarta"
         >
-          {isSubmitting ? "Resetting..." : "Reset Password"}
+          {isSubmitting ? "Resetting…" : "Reset Password"}
         </Button>
       </form>
     </AuthLayout>

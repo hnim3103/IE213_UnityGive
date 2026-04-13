@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import CampaignCard from './CampaignCard';
-import axios from 'axios';
+import api from '../lib/api';
 import { Button } from './ui/button';
 import { Link } from 'react-router-dom';
 
@@ -14,7 +14,7 @@ const ActiveCampaigns = () => {
 
   const fetchCampaigns = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/campaigns');
+      const response = await api.get('/api/campaigns');
       
       // js-combine-iterations: Filter and set data directly
       const activeData = response.data.filter(item => item.status === 'ACTIVE');

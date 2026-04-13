@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { AuthLayout } from '@/components/layout/AuthLayout';
+import { API_BASE } from '@/lib/api';
 
 const Login = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -33,7 +34,7 @@ const Login = () => {
     try {
       setIsLoggingIn(true);
 
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
@@ -47,6 +48,7 @@ const Login = () => {
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+      window.dispatchEvent(new Event('storage')); // Sync Navbar
 
       toast.success("Welcome back to Unity Give!");
       navigate("/");
@@ -71,27 +73,32 @@ const Login = () => {
       <form className="flex flex-col gap-6" onSubmit={handleEmailLogin}>
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4">Email Address</label>
+            <label htmlFor="login-email" className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4">Email Address</label>
             <input
+              id="login-email"
               type="email"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="hello@nature.org"
+              placeholder="hello@nature.org…"
+              autoComplete="email"
+              spellCheck={false}
               className="w-full px-7 py-4 bg-sage-50/50 border border-sage-300 rounded-full focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-800/30"
             />
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center px-4">
-              <label className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80">Password</label>
+              <label htmlFor="login-password" className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80">Password</label>
               <Link to="/forgot-password" className="text-[12px] text-earth-500 hover:text-earth-600 transition-colors">Forgot Password?</Link>
             </div>
             <input
+              id="login-password"
               type="password"
               name="password"
               value={formData.password}
               onChange={handleInputChange}
               placeholder="••••••••"
+              autoComplete="current-password"
               className="w-full px-7 py-4 bg-sage-50/50 border border-sage-300 rounded-full focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-800/30"
             />
           </div>
@@ -102,7 +109,7 @@ const Login = () => {
           disabled={isLoggingIn}
           className="w-full py-7 bg-[#ffc38f] hover:bg-[#ffb36f] text-[#794e25] rounded-full text-lg shadow-lg transition-all active:scale-[0.98] disabled:opacity-70 font-plus-jakarta"
         >
-          {isLoggingIn ? "Logging In..." : "Login"}
+          {isLoggingIn ? "Logging In…" : "Login"}
         </Button>
       </form>
     </AuthLayout>

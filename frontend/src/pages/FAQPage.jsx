@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { ChevronDown } from 'lucide-react';
 
 const faqData = [
@@ -79,8 +77,7 @@ const FAQPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-sage-bg selection:bg-sage-800 selection:text-white font-nunito overflow-hidden">
-      <Navbar />
+    <div className="selection:bg-sage-800 selection:text-white font-nunito overflow-hidden">
 
       {/* Hero Section */}
       <section className="relative pt-40 pb-20 px-6 text-center">
@@ -140,8 +137,6 @@ const FAQPage = () => {
           </button>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };
