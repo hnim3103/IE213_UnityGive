@@ -1,5 +1,6 @@
 import { Toaster } from "sonner";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
@@ -11,97 +12,96 @@ import FAQPage from "./pages/FAQPage";
 import AboutUs from "./pages/AboutUs";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
+
 import AdminDashboard from "./pages/AdminDashboard";
 import ManagedCampaigns from "./pages/ManagedCampaigns";
 import CreateCampaign from "./pages/CreateCampaign";
 import EditCampaign from "./pages/EditCampaign";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import AdminRoute from "./components/AdminRoute";
+
+import PublicLayout from "./layouts/PublicLayout";
+// (Optional but recommended)
+import AdminLayout from "./layouts/AdminLayout";
 
 function App() {
   return (
     <>
       <Toaster position="top-right" richColors />
+
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
+          {/* PUBLIC LAYOUT */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/campaigns" element={<Campaigns />} />
+            <Route path="/campaigns/:id" element={<CampaignDetails />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/faq" element={<FAQPage />} />
+
+            {/* AUTH ROUTES */}
+            <Route
+              path="/signup"
+              element={
+                <PublicRoute>
+                  <Signup />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <PublicRoute>
+                  <ForgotPassword />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/reset-password/:token"
+              element={
+                <PublicRoute>
+                  <ResetPassword />
+                </PublicRoute>
+              }
+            />
+
+            {/* USER PROTECTED */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+
+          {/* ADMIN ROUTES (NESTED CLEANLY) */}
           <Route
-            path="/signup"
-            element={
-              <PublicRoute>
-                <Signup />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/forgot-password"
-            element={
-              <PublicRoute>
-                <ForgotPassword />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/reset-password/:token"
-            element={
-              <PublicRoute>
-                <ResetPassword />
-              </PublicRoute>
-            }
-          />
-          <Route path="/campaigns" element={<Campaigns />} />
-          <Route path="/campaigns/:id" element={<CampaignDetails />} />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/faq" element={<FAQPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/dashboard"
-            element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/campaigns/create"
-            element={
-              <AdminRoute>
-                <CreateCampaign />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/campaigns"
+            path="/admin"
             element={
               <AdminRoute>
-                <ManagedCampaigns />
+                <AdminLayout />
               </AdminRoute>
             }
-          />
-          <Route
-            path="/admin/campaigns/:id/edit"
-            element={
-              <AdminRoute>
-                <EditCampaign />
-              </AdminRoute>
-            }
-          />
+          >
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="campaigns" element={<ManagedCampaigns />} />
+            <Route path="campaigns/create" element={<CreateCampaign />} />
+            <Route path="campaigns/:id/edit" element={<EditCampaign />} />
+          </Route>
+
+          {/* GLOBAL 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
