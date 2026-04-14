@@ -79,7 +79,7 @@ const Dashboard = () => {
       if (!token)
         throw new Error("No authorization token found. Please sign in again.");
 
-      const res = await fetch("http://localhost:5000/api/users/profile", {
+      const res = await fetch(`${API_BASE}/api/users/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -156,8 +156,7 @@ const Dashboard = () => {
   const impactFeed = dashboardData.impactFeed || [];
 
   return (
-    <div className="min-h-screen bg-sage-bg selection:bg-sage-800 selection:text-white flex flex-col font-nunito overflow-hidden">
-      <Navbar />
+    <div className="selection:bg-sage-800 selection:text-white flex flex-col font-nunito overflow-hidden">
 
       {/* Hero Background Effects */}
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sage-200/20 rounded-full blur-[120px] -z-10 translate-x-1/3 -translate-y-1/3 animate-pulse" />
@@ -490,8 +489,6 @@ const Dashboard = () => {
           </aside>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 };

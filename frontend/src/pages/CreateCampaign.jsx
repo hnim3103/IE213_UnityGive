@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { 
@@ -134,9 +132,8 @@ const CreateCampaign = () => {
   };
 
   return (
-    <div className="min-h-screen bg-sage-bg selection:bg-sage-800 selection:text-white flex flex-col font-nunito">
-      <Navbar />
-      
+    <div className="selection:bg-sage-800 selection:text-white flex flex-col font-nunito">
+
       <main className="flex-grow max-w-5xl mx-auto w-full px-6 py-16">
         <button 
           onClick={() => navigate(-1)}
@@ -451,8 +448,6 @@ const CreateCampaign = () => {
           </div>
         </form>
       </main>
-
-      <Footer />
     </div>
   );
 };

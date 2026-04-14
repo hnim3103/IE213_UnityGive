@@ -4,20 +4,19 @@ import axios from 'axios';
 import useSWR from 'swr';
 import { ethers } from 'ethers';
 import UnityGive from '../lib/UnityGive.json';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { Button } from '../components/ui/button';
 import { Progress } from '../components/ui/progress';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { toast } from 'sonner';
+import { API_BASE } from '../lib/api';
 
 const fetcher = url => axios.get(url).then(res => res.data);
 
 const CampaignDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: campaign, error, isLoading: loading, mutate } = useSWR(`http://localhost:5000/api/campaigns/${id}`, fetcher);
+  const { data: campaign, error, isLoading: loading, mutate } = useSWR(`${API_BASE}/api/campaigns/${id}`, fetcher);
   const [donationAmount, setDonationAmount] = useState('');
   const [isDonating, setIsDonating] = useState(false);
   const [user, setUser] = useState(null);
@@ -61,6 +60,25 @@ const CampaignDetails = () => {
       toast.info("Transaction sent. Waiting for confirmation…");
       
       await tx.wait();
+      
+      // Sync Web3 transaction with Backend DB
+      const token = localStorage.getItem("token");
+      await fetch(`${API_BASE}/api/donations`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          campaignId: campaign._id,
+          donorId: user._id,
+          amount: parsedAmount.toString(),
+          method: "crypto",
+          status: "confirmed",
+          txHash: tx.hash
+        })
+      });
+
       toast.success("Donation successful!");
       
       setDonationAmount('');
@@ -75,16 +93,12 @@ const CampaignDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-sage-bg">
-        <Navbar />
-        <div className="max-w-7xl mx-auto px-8 py-32 flex justify-center">
-          <div className="animate-pulse flex flex-col items-center gap-8 w-full">
-            <div className="w-full h-[500px] bg-sage-100 rounded-[48px]" />
-            <div className="w-2/3 h-12 bg-sage-100 rounded-full" />
-            <div className="w-1/2 h-6 bg-sage-100 rounded-full" />
-          </div>
+      <div className="max-w-7xl mx-auto px-8 py-32 flex justify-center">
+        <div className="animate-pulse flex flex-col items-center gap-8 w-full">
+          <div className="w-full h-[500px] bg-sage-100 rounded-[48px]" />
+          <div className="w-2/3 h-12 bg-sage-100 rounded-full" />
+          <div className="w-1/2 h-6 bg-sage-100 rounded-full" />
         </div>
-        <Footer />
       </div>
     );
   }
@@ -95,22 +109,18 @@ const CampaignDetails = () => {
 
   if (!campaign) {
     return (
-      <div className="min-h-screen bg-sage-bg">
-        <Navbar />
-        <div className="max-w-7xl mx-auto px-8 py-32 text-center">
-          <h1 className="text-4xl font-fraunces text-sage-800">Campaign not found</h1>
-          <Link to="/campaigns">
-            <Button className="mt-8 bg-sage-800 text-white rounded-full px-8 hover:bg-sage-900 transition-colors">Back to Projects</Button>
-          </Link>
-        </div>
-        <Footer />
+      <div className="max-w-7xl mx-auto px-8 py-32 text-center">
+        <h1 className="text-4xl font-fraunces text-sage-800">Campaign not found</h1>
+        <Link to="/campaigns">
+          <Button className="mt-8 bg-sage-800 text-white rounded-full px-8 hover:bg-sage-900 transition-colors">Back to Projects</Button>
+        </Link>
       </div>
     );
   }
 
   const targetEth = campaign.totalGoalAmount ? Number(campaign.totalGoalAmount) / 1e18 : 0;
   const raisedEth = campaign.currentAmount ? Number(campaign.currentAmount) / 1e18 : 0;
-  const progress = targetEth > 0 ? Math.min((raisedEth / targetEth) * 100, 100) : 0;
+  const progress = targetEth > 0 ? (raisedEth / targetEth) * 100 : 0;
   
   const formatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 1,
@@ -118,9 +128,7 @@ const CampaignDetails = () => {
   });
 
   return (
-    <div className="min-h-screen bg-sage-bg selection:bg-sage-800 selection:text-white font-nunito">
-      <Navbar />
-
+    <div className="selection:bg-sage-800 selection:text-white font-nunito">
       <main className="max-w-7xl mx-auto px-8 py-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
           
@@ -228,7 +236,7 @@ const CampaignDetails = () => {
                 <div className="h-3 w-full bg-white/50 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-sage-800 rounded-full transition-[width] duration-1000 ease-out"
-                    style={{ width: `${progress}%` }}
+                    style={{ width: `${Math.min(progress, 100)}%` }}
                   />
                 </div>
 
@@ -282,8 +290,6 @@ const CampaignDetails = () => {
 
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 };

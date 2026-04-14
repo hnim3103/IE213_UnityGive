@@ -26,8 +26,28 @@ const Navbar = () => {
     localStorage.removeItem("user");
     setUser(null);
     setIsDropdownOpen(false);
+    // Dispatch storage event so other Navbar instances update
+    window.dispatchEvent(new Event('storage'));
     navigate("/");
   };
+
+  // Sync user state when localStorage changes (login/logout from other components)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const navLinks = [
     { id: "homepage", label: "Home", path: "/" },
@@ -73,7 +93,10 @@ const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-3 p-1 rounded-full hover:bg-sage-800/5 transition-colors outline-none"
+                  aria-haspopup="true"
+                  aria-expanded={isDropdownOpen}
+                  aria-label={`${user.name || 'User'} account menu`}
+                  className="flex items-center gap-3 p-1 rounded-full hover:bg-sage-800/5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sage-800/30"
                 >
                   <div className="w-10 h-10 rounded-full bg-sage-200 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center">
                     {user.avatar ? (

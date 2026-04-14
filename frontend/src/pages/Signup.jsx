@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { AuthLayout } from '@/components/layout/AuthLayout';
+import { API_BASE } from '@/lib/api';
 
 const Signup = () => {
   const [isSigningUp, setIsSigningUp] = useState(false);
@@ -72,7 +73,7 @@ const Signup = () => {
     try {
       setIsSigningUp(true);
 
-      const res = await fetch("http://localhost:5000/api/auth/signup", {
+      const res = await fetch(`${API_BASE}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -114,49 +115,58 @@ const Signup = () => {
       <form className="flex flex-col gap-6" onSubmit={handleEmailSignup}>
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4">Full Name</label>
+            <label htmlFor="signup-name" className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4">Full Name</label>
             <input
+              id="signup-name"
               type="text"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder="John Doe"
+              placeholder="John Doe…"
+              autoComplete="name"
               className="w-full px-7 py-4 bg-sage-50/50 border border-sage-300 rounded-full focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-800/30"
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4">Email Address</label>
+            <label htmlFor="signup-email" className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4">Email Address</label>
             <input
+              id="signup-email"
               type="email"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="hello@nature.org"
+              placeholder="hello@nature.org…"
+              autoComplete="email"
+              spellCheck={false}
               className="w-full px-7 py-4 bg-sage-50/50 border border-sage-300 rounded-full focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-800/30"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <label className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4 whitespace-nowrap overflow-hidden text-ellipsis">Password</label>
+              <label htmlFor="signup-password" className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4 whitespace-nowrap overflow-hidden text-ellipsis">Password</label>
               <input
+                id="signup-password"
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
                 placeholder="••••••••"
+                autoComplete="new-password"
                 className="w-full px-7 py-4 bg-sage-50/50 border border-sage-300 rounded-full focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-800/30"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4 whitespace-nowrap overflow-hidden text-ellipsis">Confirm</label>
+              <label htmlFor="signup-confirm" className="text-[12px] uppercase tracking-[1.2px] text-earth-900/80 px-4 whitespace-nowrap overflow-hidden text-ellipsis">Confirm</label>
               <input
+                id="signup-confirm"
                 type="password"
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 placeholder="••••••••"
+                autoComplete="new-password"
                 className="w-full px-7 py-4 bg-sage-50/50 border border-sage-300 rounded-full focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-800/30"
               />
             </div>
@@ -183,7 +193,7 @@ const Signup = () => {
           disabled={isSigningUp}
           className="w-full py-7 bg-sage-800 hover:bg-sage-900 text-white rounded-full text-lg shadow-lg transition-all active:scale-[0.98] disabled:opacity-70 font-plus-jakarta"
         >
-          {isSigningUp ? "Creating Account..." : "Create Account"}
+          {isSigningUp ? "Creating Account…" : "Create Account"}
         </Button>
       </form>
     </AuthLayout>

@@ -1,6 +1,4 @@
 import React from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
 
@@ -75,8 +73,7 @@ const AboutUs = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-sage-bg selection:bg-sage-800 selection:text-white font-nunito overflow-x-hidden">
-      <Navbar />
+    <div className="selection:bg-sage-800 selection:text-white font-nunito overflow-x-hidden">
 
       {/* 1. Technical Narrative Header */}
       <section className="pt-32 pb-20 px-8">
@@ -245,8 +242,6 @@ const AboutUs = () => {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };

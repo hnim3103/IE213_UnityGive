@@ -1,21 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import axios from 'axios';
 import useSWR from 'swr';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import { useSearchParams } from 'react-router-dom';
 import CampaignCard from '../components/CampaignCard';
 import { Button } from '../components/ui/button';
 import { CAMPAIGN_TYPES } from '../lib/constant';
+import { API_BASE } from '../lib/api';
 
 const fetcher = url => axios.get(url).then(res => res.data);
 
 const Campaigns = () => {
-  const { data, error, isLoading: loading } = useSWR('http://localhost:5000/api/campaigns', fetcher);
+  const { data, error, isLoading: loading } = useSWR(`${API_BASE}/api/campaigns`, fetcher);
   const campaigns = data || [];
   
-  const [activeCategory, setActiveCategory] = useState('ALL');
-  const [activeStatus, setActiveStatus] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeCategory = searchParams.get('category') || 'ALL';
+  const activeStatus = searchParams.get('status') || 'All';
+  const searchQuery = searchParams.get('q') || '';
+
+  const setActiveCategory = (val) => setSearchParams(p => { p.set('category', val); return p; });
+  const setActiveStatus = (val) => setSearchParams(p => { p.set('status', val); return p; });
+  const setSearchQuery = (val) => setSearchParams(p => { p.set('q', val); return p; });
 
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesCategory = activeCategory === 'ALL' || campaign.category === activeCategory;
@@ -43,8 +48,7 @@ const Campaigns = () => {
   const categories = ['ALL', ...Object.keys(CAMPAIGN_TYPES)];
 
   return (
-    <div className="min-h-screen bg-sage-bg selection:bg-sage-800 selection:text-white">
-      <Navbar />
+    <div>
 
       {/* Page Header */}
       <section className="bg-sage-section pt-32 pb-20 px-8 relative overflow-hidden">
@@ -158,8 +162,6 @@ const Campaigns = () => {
           )}
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };

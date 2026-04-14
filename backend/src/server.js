@@ -15,7 +15,7 @@ import swaggerSpec from "./config/swagger.js";
 const PORT = process.env.PORT || 5000;
 const app = express();
 
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ origin: ["http://localhost:3000", "http://localhost:5173"] }));
 app.use(express.json());
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

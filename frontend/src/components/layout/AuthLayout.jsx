@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import metaMaskIcon from '../../assets/metamask.svg';
 import Footer from '@/components/Footer';
 
-
+import { API_BASE } from '@/lib/api';
 export const AuthLayout = ({
   title,
   subtitle,
@@ -32,7 +32,7 @@ export const AuthLayout = ({
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       const walletAddress = accounts[0];
 
-      const nonceRes = await fetch("http://localhost:5000/api/auth/web3/nonce", {
+      const nonceRes = await fetch(`${API_BASE}/api/auth/web3/nonce`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ walletAddress })
@@ -49,7 +49,7 @@ export const AuthLayout = ({
         params: [msgHex, walletAddress]
       });
 
-      const loginRes = await fetch("http://localhost:5000/api/auth/web3/login", {
+      const loginRes = await fetch(`${API_BASE}/api/auth/web3/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ walletAddress, signature })

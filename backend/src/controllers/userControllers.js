@@ -93,7 +93,7 @@ export const getUserDashboardData = async (req, res) => {
 
         // 1. Get total impact (sum of confirmed donations)
         const userDonations = await Donation.find({ donorId: userId, status: "confirmed" });
-        const totalDonatedWei = userDonations.reduce((acc, doc) => acc + BigInt(doc.amount || "0"), BigInt(0));
+        const totalDonatedWei = userDonations.reduce((acc, doc) => acc + BigInt((doc.amount || "0").toString().split('.')[0]), BigInt(0));
         
         // 2. Get unique projects supported
         const supportedCampaignIds = [...new Set(userDonations.map(d => d.campaignId.toString()))];
@@ -118,7 +118,7 @@ export const getUserDashboardData = async (req, res) => {
                 donated: 'Owner',
                 category: c.category || 'COMMUNITY',
                 status: c.status || 'ACTIVE',
-                progress: Math.floor(Math.random() * 100), // Placeholder until progress tracking is added
+                progress: Number(c.totalGoalAmount) > 0 ? Math.round((Number(c.currentAmount || 0) / Number(c.totalGoalAmount)) * 100) : 0,
                 currentMilestone: c.milestones?.length ? (c.milestones.find(m => !m.isApproved)?.title || 'Completed') : 'Fundraising',
                 isOwned: true,
             });
@@ -128,7 +128,7 @@ export const getUserDashboardData = async (req, res) => {
         myCampaignsSupported.forEach(c => {
             const amountWei = userDonations
                 .filter(d => d.campaignId.toString() === c._id.toString())
-                .reduce((acc, d) => acc + BigInt(d.amount || "0"), BigInt(0));
+                .reduce((acc, d) => acc + BigInt((d.amount || "0").toString().split('.')[0]), BigInt(0));
             
             const ethAmount = (Number(amountWei) / 1e18).toFixed(3);
 
@@ -139,7 +139,7 @@ export const getUserDashboardData = async (req, res) => {
                 donated: `${ethAmount} ETH`,
                 category: c.category || 'COMMUNITY',
                 status: c.status || 'ACTIVE',
-                progress: Math.floor(Math.random() * 100), // Placeholder
+                progress: Number(c.totalGoalAmount) > 0 ? Math.round((Number(c.currentAmount || 0) / Number(c.totalGoalAmount)) * 100) : 0,
                 currentMilestone: c.milestones?.length ? (c.milestones.find(m => !m.isApproved)?.title || 'Completed') : 'Fundraising',
                 isOwned: false,
             });
