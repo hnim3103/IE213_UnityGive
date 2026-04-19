@@ -1,9 +1,7 @@
-import hardhat from "hardhat";
+import { ethers } from "hardhat";
 
 async function main() {
   console.log("Deploying UnityGive contract...");
-
-  const { ethers } = await hardhat.network.connect();
 
   const [deployer] = await ethers.getSigners();
   console.log("Deploying with wallet:", deployer.address);
@@ -14,7 +12,7 @@ async function main() {
   );
 
   const UnityGive = await ethers.getContractFactory("UnityGive");
-  const contract = await UnityGive.deploy();
+  const contract = await UnityGive.deploy(deployer.address);
   await contract.waitForDeployment();
 
   const address = await contract.getAddress();
