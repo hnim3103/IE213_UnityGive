@@ -8,6 +8,7 @@ import metaMaskIcon from '../../assets/metamask.svg';
 import Footer from '@/components/Footer';
 
 import { API_BASE } from '@/lib/api';
+import { ensureCorrectNetwork } from '@/lib/network';
 export const AuthLayout = ({
   title,
   subtitle,
@@ -28,6 +29,9 @@ export const AuthLayout = ({
 
     try {
       setIsConnecting(true);
+
+      // Ensure MetaMask is on the correct network before proceeding
+      await ensureCorrectNetwork();
 
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       const walletAddress = accounts[0];

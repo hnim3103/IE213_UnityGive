@@ -4,20 +4,9 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
-import {
-  ArrowLeft,
-  Upload,
-  Calendar,
-  DollarSign,
-  Target,
-  Layout,
-  Plus,
-  X,
-  ShieldCheck,
-  CheckCircle2,
-  Trash2,
-} from "lucide-react";
+import { CheckCircle2, ShieldCheck, Trash2, X, Plus, Layout, Target, DollarSign, Calendar, Upload, ArrowLeft } from "lucide-react";
 import { CAMPAIGN_TYPES } from "../lib/constant";
+import { API_BASE } from "../lib/api";
 
 const EditCampaign = () => {
   const navigate = useNavigate();
@@ -66,7 +55,7 @@ const EditCampaign = () => {
     const loadCampaign = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:5000/api/campaigns`, {
+        const response = await fetch(`${API_BASE}/api/campaigns`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
@@ -172,7 +161,7 @@ const EditCampaign = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/campaigns/${id}`,
+        `${API_BASE}/api/campaigns/${id}`,
         {
           method: "PUT",
           headers: {

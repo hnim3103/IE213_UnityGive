@@ -20,11 +20,40 @@ const CampaignDetails = () => {
   const [donationAmount, setDonationAmount] = useState('');
   const [isDonating, setIsDonating] = useState(false);
   const [user, setUser] = useState(null);
+  const [walletAddress, setWalletAddress] = useState(null);
+
+  // Governance state
+  const [onChainMilestones, setOnChainMilestones] = useState([]);
+  const [proofInputs, setProofInputs] = useState({});
+  const [governanceLoading, setGovernanceLoading] = useState({});
+  const [hasVotedMap, setHasVotedMap] = useState({});
+
+  const getContract = async (withSigner = false) => {
+    if (!window.ethereum) throw new Error('MetaMask not found');
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
+    if (!contractAddress) throw new Error('Contract address not configured.');
+    if (withSigner) {
+      await provider.send('eth_requestAccounts', []);
+      const signer = await provider.getSigner();
+      return new ethers.Contract(contractAddress, UnityGive.abi, signer);
+    }
+    return new ethers.Contract(contractAddress, UnityGive.abi, provider);
+  };
+
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) setUser(JSON.parse(storedUser));
+
+    // Detect connected wallet
+    if (window.ethereum) {
+      window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+        if (accounts.length > 0) setWalletAddress(accounts[0].toLowerCase());
+      });
+      window.ethereum.on('accountsChanged', accounts => {
+        setWalletAddress(accounts[0]?.toLowerCase() || null);
+      });
     }
   }, []);
 
@@ -71,25 +100,119 @@ const CampaignDetails = () => {
         },
         body: JSON.stringify({
           campaignId: campaign._id,
-          donorId: user._id,
-          amount: parsedAmount.toString(),
+          donorId: user?._id || user?.id,
+          amount: parsedAmount.toString(), // Wei string
           method: "crypto",
           status: "confirmed",
           txHash: tx.hash
         })
       });
 
-      toast.success("Donation successful!");
-      
+      toast.success('Donation successful!');
       setDonationAmount('');
-      mutate(); // Re-fetch the campaign data
+      mutate();
     } catch (error) {
       console.error(error);
-      toast.error(error.reason || error.message || "Donation failed");
+      // Distinguish common MetaMask errors
+      if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
+        toast.error('Transaction rejected in MetaMask.');
+      } else if (error.message?.includes('network') || error.message?.includes('chain')) {
+        toast.error('Wrong network. Please switch to the correct network in MetaMask.');
+      } else {
+        toast.error(error.reason || error.message || 'Donation failed');
+      }
     } finally {
       setIsDonating(false);
     }
   };
+
+  // Fetch on-chain milestone state & vote status
+  useEffect(() => {
+    if (!campaign?.onChainCampaignId && campaign?.onChainCampaignId !== 0) return;
+    const fetchMilestoneState = async () => {
+      try {
+        const contract = await getContract();
+        const count = Number(await contract.getMilestonesCount(campaign.onChainCampaignId));
+        const milestones = [];
+        const votedMap = {};
+        for (let i = 0; i < count; i++) {
+          const m = await contract.getMilestone(campaign.onChainCampaignId, i);
+          milestones.push({
+            amount: m[0],
+            ipfsEvidence: m[1],
+            approvalCount: Number(m[2]),
+            isApproved: m[3],
+            isFunded: m[4],
+          });
+          // Check if current wallet has voted
+          if (walletAddress) {
+            const voted = await contract.hasVoted(campaign.onChainCampaignId, i, walletAddress);
+            votedMap[i] = voted;
+          }
+        }
+        setOnChainMilestones(milestones);
+        setHasVotedMap(votedMap);
+      } catch (e) {
+        console.warn('Could not load on-chain milestone state:', e.message);
+      }
+    };
+    fetchMilestoneState();
+  }, [campaign?.onChainCampaignId, walletAddress]);
+
+  const handleUploadProof = async (milestoneIndex) => {
+    const cid = proofInputs[milestoneIndex]?.trim();
+    if (!cid) { toast.error('Please enter an IPFS CID'); return; }
+    try {
+      setGovernanceLoading(p => ({ ...p, [`proof_${milestoneIndex}`]: true }));
+      const contract = await getContract(true);
+      const tx = await contract.uploadProofOfImpact(campaign.onChainCampaignId, milestoneIndex, cid);
+      toast.info('Uploading proof… waiting for confirmation');
+      await tx.wait();
+      toast.success('Proof of Impact uploaded on-chain!');
+      setProofInputs(p => ({ ...p, [milestoneIndex]: '' }));
+      // Refresh milestone state
+      const m = await contract.getMilestone(campaign.onChainCampaignId, milestoneIndex);
+      setOnChainMilestones(prev => prev.map((item, i) => i === milestoneIndex
+        ? { ...item, ipfsEvidence: m[1] } : item));
+    } catch (e) {
+      toast.error(e.code === 4001 ? 'Rejected in MetaMask' : e.reason || e.message);
+    } finally {
+      setGovernanceLoading(p => ({ ...p, [`proof_${milestoneIndex}`]: false }));
+    }
+  };
+
+  const handleVote = async (milestoneIndex) => {
+    try {
+      setGovernanceLoading(p => ({ ...p, [`vote_${milestoneIndex}`]: true }));
+      const contract = await getContract(true);
+      const tx = await contract.voteApproveMilestone(campaign.onChainCampaignId, milestoneIndex);
+      toast.info('Vote submitted… waiting for confirmation');
+      await tx.wait();
+      toast.success('Vote recorded on-chain!');
+      // Refresh milestone
+      const m = await contract.getMilestone(campaign.onChainCampaignId, milestoneIndex);
+      setOnChainMilestones(prev => prev.map((item, i) => i === milestoneIndex
+        ? { ...item, approvalCount: Number(m[2]), isApproved: m[3], isFunded: m[4] } : item));
+      setHasVotedMap(p => ({ ...p, [milestoneIndex]: true }));
+    } catch (e) {
+      toast.error(e.code === 4001 ? 'Rejected in MetaMask' : e.reason || e.message);
+    } finally {
+      setGovernanceLoading(p => ({ ...p, [`vote_${milestoneIndex}`]: false }));
+    }
+  };
+
+  const handleRefund = async () => {
+    try {
+      const contract = await getContract(true);
+      const tx = await contract.refund(campaign.onChainCampaignId);
+      toast.info('Requesting refund… waiting for confirmation');
+      await tx.wait();
+      toast.success('Refund successful!');
+    } catch (e) {
+      toast.error(e.code === 4001 ? 'Rejected in MetaMask' : e.reason || e.message);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -118,8 +241,13 @@ const CampaignDetails = () => {
     );
   }
 
-  const targetEth = campaign.totalGoalAmount ? Number(campaign.totalGoalAmount) / 1e18 : 0;
-  const raisedEth = campaign.currentAmount ? Number(campaign.currentAmount) / 1e18 : 0;
+  // totalGoalAmount is stored as ETH string (e.g. "1.5") from the creation form
+  // currentAmount is accumulated Wei strings from donations (e.g. "500000000000000000")
+  // We display both in ETH for consistency
+  const targetEth = campaign.totalGoalAmount ? parseFloat(campaign.totalGoalAmount) : 0;
+  const raisedEth = campaign.currentAmount && campaign.currentAmount !== '0'
+    ? parseFloat(ethers.formatEther(BigInt(campaign.currentAmount)))
+    : 0;
   const progress = targetEth > 0 ? (raisedEth / targetEth) * 100 : 0;
   
   const formatter = new Intl.NumberFormat('en-US', {
@@ -182,35 +310,161 @@ const CampaignDetails = () => {
 
               {/* Milestones Section */}
               <div className="mt-16 flex flex-col gap-10">
-                <h3 className="text-3xl font-fraunces font-thin text-sage-800">Impact Milestones</h3>
-                <div className="flex flex-col gap-6">
-                  {campaign.milestones?.map((milestone, index) => (
-                    <div key={index} className="bg-white/40 backdrop-blur-sm p-8 rounded-[32px] border border-white/50 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors hover:bg-white/60">
-                       <div className="flex items-center gap-6">
-                          <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold ${milestone.isApproved ? 'bg-sage-800 text-white' : 'bg-sage-100 text-sage-800'}`}>
-                             {index + 1}
-                          </div>
-                          <div className="flex flex-col gap-1">
-                             <h4 className="text-xl font-light text-sage-800">{milestone.title || `Phase ${index + 1}`}</h4>
-                             <p className="text-sm font-extralight text-earth-900/70">
-                                Target: {formatter.format(Number(milestone.amount) / 1e18)} ETH
-                             </p>
-                          </div>
-                       </div>
-                       <div className="flex items-center gap-4">
-                          {milestone.isApproved ? (
-                            <Badge className="bg-sage-800/10 text-sage-800 border-none px-4 py-2 rounded-full flex items-center gap-2">
-                              <span className="material-symbols-outlined text-sm">check_circle</span>
-                              Verified & Released
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="border-sage-800/20 text-sage-800/60 px-4 py-2 rounded-full">
-                              Pending Impact Proof
-                            </Badge>
-                          )}
-                       </div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-3xl font-fraunces font-thin text-sage-800">Impact Milestones</h3>
+                  {campaign.onChainCampaignId !== undefined && (
+                    <span className="text-[10px] uppercase tracking-widest text-earth-900/50 font-bold bg-white/60 px-3 py-1.5 rounded-full border border-white">
+                      On-chain ID #{campaign.onChainCampaignId}
+                    </span>
+                  )}
+                </div>
+
+                {/* Refund button if campaign inactive/deadline passed */}
+                {campaign.status !== 'ACTIVE' && walletAddress && (
+                  <div className="bg-rose-50 border border-rose-100 rounded-[24px] p-6 flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-bold text-rose-700 text-sm">Campaign ended</p>
+                      <p className="text-xs text-rose-600/70 font-light mt-0.5">If you donated and the goal wasn't reached, you may claim a refund.</p>
                     </div>
-                  ))}
+                    <Button onClick={handleRefund} className="bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-xs font-bold px-6 py-3 whitespace-nowrap">
+                      Claim Refund
+                    </Button>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-6">
+                  {campaign.milestones?.map((milestone, index) => {
+                    const onChain = onChainMilestones[index];
+                    const isOrg = walletAddress && campaign.orgWallet?.toLowerCase() === walletAddress;
+                    const isCouncil = walletAddress && campaign.councilMembers?.some(m => m.toLowerCase() === walletAddress);
+                    const hasProof = onChain?.ipfsEvidence && onChain.ipfsEvidence.length > 0;
+                    const alreadyVoted = hasVotedMap[index];
+                    const requiredVotes = campaign.requiredVotes || 1;
+
+                    return (
+                      <div key={index} className="bg-white/50 backdrop-blur-sm rounded-[32px] border border-white/60 overflow-hidden transition-colors hover:bg-white/70">
+                        {/* Milestone Header */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8">
+                          <div className="flex items-center gap-6">
+                            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0 ${
+                              onChain?.isFunded ? 'bg-teal-600 text-white'
+                              : onChain?.isApproved ? 'bg-sage-600 text-white'
+                              : 'bg-sage-100 text-sage-800'
+                            }`}>
+                              {onChain?.isFunded ? (
+                                <span className="material-symbols-outlined text-[22px]">check_circle</span>
+                              ) : onChain?.isApproved ? (
+                                <span className="material-symbols-outlined text-[22px]">task_alt</span>
+                              ) : (
+                                index + 1
+                              )}
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <h4 className="text-xl font-light text-sage-800">{milestone.title || `Phase ${index + 1}`}</h4>
+                              <p className="text-sm font-extralight text-earth-900/70">
+                                Target: {formatter.format(parseFloat(milestone.amount))} ETH
+                              </p>
+                              {onChain && (
+                                <div className="flex items-center gap-2 mt-1">
+                                  <div className="flex gap-1">
+                                    {Array.from({ length: requiredVotes }).map((_, vi) => (
+                                      <div key={vi} className={`w-3 h-3 rounded-full ${
+                                        vi < (onChain.approvalCount || 0) ? 'bg-sage-800' : 'bg-sage-200'
+                                      }`} />
+                                    ))}
+                                  </div>
+                                  <span className="text-[10px] text-earth-900/50 font-bold uppercase tracking-wide">
+                                    {onChain.approvalCount}/{requiredVotes} votes
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 flex-wrap">
+                            {onChain?.isFunded ? (
+                              <Badge className="bg-teal-50 text-teal-700 border-none px-4 py-2 rounded-full">
+                                <span className="material-symbols-outlined text-sm mr-1">payments</span>
+                                Funded
+                              </Badge>
+                            ) : onChain?.isApproved ? (
+                              <Badge className="bg-sage-800/10 text-sage-800 border-none px-4 py-2 rounded-full">
+                                <span className="material-symbols-outlined text-sm mr-1">check_circle</span>
+                                Approved
+                              </Badge>
+                            ) : hasProof ? (
+                              <Badge variant="outline" className="border-amber-300 text-amber-700 px-4 py-2 rounded-full">
+                                <span className="material-symbols-outlined text-sm mr-1">pending</span>
+                                Awaiting Votes
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="border-sage-800/20 text-sage-800/60 px-4 py-2 rounded-full">
+                                Pending Proof
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* On-chain evidence & actions */}
+                        {onChain && (
+                          <div className="border-t border-sage-800/5 px-8 pb-8 pt-6 flex flex-col gap-4">
+                            {/* Show existing proof */}
+                            {hasProof && (
+                              <div className="flex items-center gap-3 bg-sage-50 rounded-2xl px-5 py-3">
+                                <span className="material-symbols-outlined text-sage-800 text-[18px]">insert_link</span>
+                                <div className="flex flex-col min-w-0">
+                                  <span className="text-[10px] uppercase tracking-widest text-earth-900/40 font-bold">IPFS Proof of Impact</span>
+                                  <a
+                                    href={`https://ipfs.io/ipfs/${onChain.ipfsEvidence}`}
+                                    target="_blank" rel="noopener noreferrer"
+                                    className="text-xs text-sage-800 hover:underline truncate"
+                                  >
+                                    {onChain.ipfsEvidence}
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Org: Upload Proof */}
+                            {isOrg && !onChain.isApproved && (
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Paste IPFS CID (e.g. Qm…)"
+                                  value={proofInputs[index] || ''}
+                                  onChange={e => setProofInputs(p => ({ ...p, [index]: e.target.value }))}
+                                  className="flex-1 bg-white/80 border border-sage-800/10 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-sage-800/30"
+                                />
+                                <Button
+                                  onClick={() => handleUploadProof(index)}
+                                  disabled={governanceLoading[`proof_${index}`]}
+                                  className="bg-sage-800 text-white hover:bg-sage-900 rounded-2xl px-5 text-xs font-bold whitespace-nowrap"
+                                >
+                                  {governanceLoading[`proof_${index}`] ? 'Uploading…' : 'Submit Proof'}
+                                </Button>
+                              </div>
+                            )}
+
+                            {/* Council: Vote */}
+                            {isCouncil && !onChain.isApproved && hasProof && (
+                              <Button
+                                onClick={() => handleVote(index)}
+                                disabled={governanceLoading[`vote_${index}`] || alreadyVoted}
+                                className={`rounded-2xl text-xs font-bold px-6 py-3 self-start ${
+                                  alreadyVoted
+                                    ? 'bg-sage-100 text-sage-800/50 cursor-not-allowed'
+                                    : 'bg-earth-500 hover:bg-earth-600 text-white'
+                                }`}
+                              >
+                                {governanceLoading[`vote_${index}`] ? 'Submitting…'
+                                  : alreadyVoted ? '✓ Already Voted'
+                                  : 'Vote to Approve'}
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>

@@ -4,6 +4,7 @@ import useSWR from "swr";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Button } from "../components/ui/button";
+import { API_BASE } from "../lib/api";
 import {
   Heart,
   Trophy,
@@ -41,7 +42,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const { data: dashboardData, isLoading: dashboardLoading } = useSWR(
-    "http://localhost:5000/api/users/profile/dashboard",
+    `${API_BASE}/api/users/profile/dashboard`,
     fetcher,
   );
 

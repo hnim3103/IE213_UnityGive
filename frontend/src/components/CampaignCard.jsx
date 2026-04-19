@@ -1,19 +1,45 @@
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from './ui/card';
-import { Progress } from './ui/progress';
 import { Button } from './ui/button';
 import { Link } from 'react-router-dom';
+import { ethers } from 'ethers';
 
-const CampaignCard = ({ campaign }) => {
-  const { title, description, totalGoalAmount, currentAmount, softCapAmount, category, image, _id } = campaign;
+const CampaignCard = ({ campaign = {} }) => {
+  const {
+    title,
+    description,
+    totalGoalAmount,
+    currentAmount,
+    softCapAmount,
+    category,
+    image,
+    _id
+  } = campaign;
 
-  // Format the wei string amounts into ETH numbers
-  const targetEth = totalGoalAmount ? Number(totalGoalAmount) / 1e18 : 0;
-  const raisedEth = currentAmount ? Number(currentAmount) / 1e18 : 0;
-  const softCapEth = softCapAmount ? Number(softCapAmount) / 1e18 : 0;
+  const targetEth = totalGoalAmount ? parseFloat(totalGoalAmount) : 0;
+  const softCapEth = softCapAmount ? parseFloat(softCapAmount) : 0;
 
-  const progress = targetEth > 0 ? (raisedEth / targetEth) * 100 : 0;
-  const softCapProgress = targetEth > 0 ? (softCapEth / targetEth) * 100 : 0;
+  let raisedEth = 0;
+  if (currentAmount && currentAmount.toString() !== '0') {
+    try {
+      const amountStr = currentAmount.toString();
+
+      if (amountStr.includes('.') && amountStr.length < 15) {
+        raisedEth = parseFloat(amountStr);
+      }
+      else {
+        const cleanWei = amountStr.split('.')[0] || '0';
+        const formatEther = ethers.formatEther || ethers.utils.formatEther;
+        raisedEth = parseFloat(formatEther(cleanWei));
+      }
+    } catch (err) {
+      console.error(`Error parsing currentAmount for ${_id}. Value received: "${currentAmount}"`, err);
+    }
+  }
+
+  const rawProgress = targetEth > 0 ? (raisedEth / targetEth) * 100 : 0;
+  const progressPercent = Math.min(rawProgress, 100);
+  const softCapProgress = targetEth > 0 ? Math.min((softCapEth / targetEth) * 100, 100) : 0;
 
   return (
     <Card className="overflow-hidden border-none shadow-[0px_10px_30px_-5px_rgba(69,87,59,0.08)] hover:shadow-[0px_20px_40px_-10px_rgba(69,87,59,0.12)] transition-shadow duration-500 bg-sage-50 rounded-bl-[24px] rounded-br-[40px] rounded-tl-[32px] rounded-tr-[16px] flex flex-col h-full group">
@@ -27,7 +53,7 @@ const CampaignCard = ({ campaign }) => {
         />
         <div className="absolute top-4 left-4">
           <span className="bg-white/90 backdrop-blur-md text-sage-800 text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
-            {category ? category.replace(/_/g, ' ') : ''}
+            {category ? String(category).replace(/_/g, ' ') : 'Uncategorized'}
           </span>
         </div>
       </div>
@@ -35,10 +61,10 @@ const CampaignCard = ({ campaign }) => {
       {/* Content Section */}
       <CardHeader className="p-8 pb-3 flex-grow">
         <h3 className="text-2xl font-fraunces font-thin text-sage-800 line-clamp-1 leading-tight group-hover:text-earth-500 transition-colors duration-300" title={title}>
-          {title}
+          {title || "Untitled Campaign"}
         </h3>
         <p className="text-earth-900 font-nunito font-extralight text-sm mt-3 line-clamp-2 leading-relaxed">
-          {description}
+          {description || "No description provided."}
         </p>
       </CardHeader>
 
@@ -46,7 +72,7 @@ const CampaignCard = ({ campaign }) => {
         {/* Progress Stats */}
         <div className="flex justify-between items-end font-nunito">
           <span className="text-[14px] font-light text-earth-500">
-            {Math.round(progress)}% Funded
+            {Math.round(rawProgress)}% Funded
           </span>
           <span className="text-[14px] font-light text-sage-800">
             {raisedEth.toLocaleString(undefined, { maximumFractionDigits: 3 })} ETH / <span className="opacity-60">{targetEth.toLocaleString(undefined, { maximumFractionDigits: 3 })} ETH</span>
@@ -57,7 +83,7 @@ const CampaignCard = ({ campaign }) => {
         <div className="h-2 w-full bg-sage-400 rounded-full overflow-hidden relative" title={softCapEth > 0 ? `Soft Cap: ${softCapEth} ETH` : ""}>
           <div
             className="h-full bg-sage-800 rounded-full transition-[width] duration-1000 ease-out absolute top-0 left-0 z-10"
-            style={{ width: `${progress}%` }}
+            style={{ width: `${progressPercent}%` }}
           />
           {softCapProgress > 0 ? (
             <div
@@ -71,7 +97,7 @@ const CampaignCard = ({ campaign }) => {
 
       {/* Footer Action */}
       <CardFooter className="p-8 pt-4 mt-auto">
-        <Link to={`/campaigns/${_id}`} className="w-full">
+        <Link to={`/campaigns/${_id || ''}`} className="w-full">
           <Button className="w-full bg-sage-400 hover:bg-sage-200 text-sage-800 rounded-full py-6 font-nunito font-light transition-colors active:scale-[0.98] border-none shadow-none">
             Donate Now
           </Button>

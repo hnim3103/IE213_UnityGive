@@ -42,6 +42,16 @@ const userSchema = new mongoose.Schema({
 
   avatar: String,
 
+  kycStatus: {
+    type: String,
+    enum: ["none", "pending", "approved", "rejected"],
+    default: "none"
+  },
+
+  kycDocuments: [{
+    type: String // IPFS links or file paths
+  }],
+
   isVerified: {
     type: Boolean,
     default: false

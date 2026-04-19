@@ -1,12 +1,30 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, PlusCircle, Users, ShieldCheck, ArrowLeft, BarChart3 } from 'lucide-react';
 
 const AdminLayout = () => {
   const navigate = useNavigate();
 
-  const navItems = [
-    { to: '/admin/campaigns/create', label: 'Create Campaign', icon: PlusCircle },
+  const navGroups = [
+    {
+      label: 'Overview',
+      items: [
+        { to: '/admin/dashboard', label: 'Dashboard', icon: BarChart3 },
+      ]
+    },
+    {
+      label: 'Content',
+      items: [
+        { to: '/admin/campaigns', label: 'Campaigns', icon: FolderKanban, end: true },
+      ]
+    },
+    {
+      label: 'People',
+      items: [
+        { to: '/admin/users', label: 'Users', icon: Users },
+        { to: '/admin/verifications', label: 'Verifications', icon: ShieldCheck },
+      ]
+    },
   ];
 
   return (
@@ -27,20 +45,20 @@ const AdminLayout = () => {
         </div>
 
         {/* Nav Items */}
-        <nav className="flex-1 px-4 py-6 flex flex-col gap-1">
-          {navItems.map(({ to, label, icon: Icon }) => (
+        <nav className="flex-1 px-4 py-6 flex flex-col gap-1 overflow-y-auto">
+          {navGroups.flatMap((g) => g.items).map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
+              end={end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-sage-800 text-white shadow-lg shadow-sage-800/20'
-                    : 'text-sage-800/70 hover:bg-sage-100 hover:text-sage-800'
+                `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${isActive
+                  ? 'bg-sage-800 text-white shadow-lg shadow-sage-800/20'
+                  : 'text-sage-800/70 hover:bg-sage-100 hover:text-sage-800'
                 }`
               }
             >
-              <Icon size={18} />
+              <Icon size={18} aria-hidden="true" />
               {label}
             </NavLink>
           ))}

@@ -178,3 +178,106 @@ export const getUserDashboardData = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+// @desc    Submit KYC documents (Organizations)
+// @route   POST /api/users/profile/kyc
+// @access  Private
+export const submitKyc = async (req, res) => {
+    try {
+        const { documents } = req.body;
+        if (!documents || !Array.isArray(documents) || documents.length === 0) {
+            return res.status(400).json({ message: "Documents are required" });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        user.kycDocuments = documents;
+        user.kycStatus = "pending";
+        await user.save();
+
+        res.status(200).json({ message: "KYC submitted successfully", kycStatus: "pending" });
+    } catch (error) {
+        console.error("Error submitting KYC:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// @desc    Get all pending KYC applications
+// @route   GET /api/users/kyc/pending
+// @access  Private/Admin
+export const getPendingKyc = async (req, res) => {
+    try {
+        const users = await User.find({ kycStatus: "pending" }).select("-passwordHash -nonce");
+        res.status(200).json(users);
+    } catch (error) {
+        console.error("Error fetching pending KYC applications:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// @desc    Update KYC status
+// @route   PUT /api/users/kyc/:id/status
+// @access  Private/Admin
+export const updateKycStatus = async (req, res) => {
+    try {
+        const { status } = req.body; // 'approved' or 'rejected'
+        if (!["approved", "rejected"].includes(status)) {
+            return res.status(400).json({ message: "Invalid status" });
+        }
+
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        user.kycStatus = status;
+        if (status === "approved") {
+            user.isVerified = true;
+        } else {
+            user.isVerified = false;
+        }
+        await user.save();
+
+        res.status(200).json({ message: `KYC application ${status}`, user });
+    } catch (error) {
+        console.error("Error updating KYC status:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// @desc    Update user role or status
+// @route   PUT /api/users/:id/manage
+// @access  Private/Admin
+export const updateUserRoleStatus = async (req, res) => {
+    try {
+        const { role, status } = req.body;
+        const user = await User.findById(req.params.id);
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (role) {
+            if (!["donor", "admin"].includes(role)) {
+                return res.status(400).json({ message: "Invalid role" });
+            }
+            user.role = role;
+        }
+
+        if (status) {
+            if (!["active", "suspended", "deleted"].includes(status)) {
+                return res.status(400).json({ message: "Invalid status" });
+            }
+            user.status = status;
+        }
+
+        await user.save();
+        res.status(200).json({ message: "User updated successfully", user });
+    } catch (error) {
+        console.error("Error updating user role/status:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};

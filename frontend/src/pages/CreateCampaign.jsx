@@ -1,24 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ethers } from 'ethers';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import { 
-  ArrowLeft, 
-  Upload, 
-  Calendar, 
-  DollarSign, 
-  Target, 
-  Layout, 
-  Plus, 
+import {
+  ArrowLeft,
+  Upload,
+  Calendar,
+  DollarSign,
+  Target,
+  Layout,
+  Plus,
   X,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from 'lucide-react';
 import { CAMPAIGN_TYPES } from '../lib/constant';
+import { API_BASE } from '../lib/api';
+import UnityGive from '../lib/UnityGive.json';
+import { ensureCorrectNetwork } from '../lib/network';
 
 const CreateCampaign = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [txStatus, setTxStatus] = useState(''); // 'chain' | 'db' | ''
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -50,14 +56,38 @@ const CreateCampaign = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Parse "DD/MM/YYYY" → Date object (returns null on invalid input)
+  const parseDMY = (str) => {
+    if (!str || str.length !== 10) return null;
+    const [dd, mm, yyyy] = str.split('/');
+    if (!dd || !mm || !yyyy) return null;
+    const d = new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
+  // Auto-insert slashes as user types: "1801" → "18/01/"
+  const handleDateInput = (e) => {
+    const { name } = e.target;
+    let raw = e.target.value.replace(/\D/g, '').slice(0, 8);
+    let formatted = raw;
+    if (raw.length > 2) formatted = raw.slice(0, 2) + '/' + raw.slice(2);
+    if (raw.length > 4) formatted = raw.slice(0, 2) + '/' + raw.slice(2, 4) + '/' + raw.slice(4);
+    setFormData(prev => ({ ...prev, [name]: formatted }));
+  };
+
   const addMilestone = () => {
-    if (!newMilestone.title || !newMilestone.amount) {
-      toast.error("Please fill in both milestone title and amount.");
+    if (!newMilestone.title.trim()) {
+      toast.error("Milestone title cannot be empty.");
+      return;
+    }
+    const amt = parseFloat(newMilestone.amount);
+    if (!newMilestone.amount || isNaN(amt) || amt <= 0) {
+      toast.error("Milestone amount must be a positive number.");
       return;
     }
     setFormData(prev => ({
       ...prev,
-      milestones: [...prev.milestones, { ...newMilestone, isApproved: false, isFunded: false }]
+      milestones: [...prev.milestones, { title: newMilestone.title.trim(), amount: newMilestone.amount, isApproved: false, isFunded: false }]
     }));
     setNewMilestone({ title: '', amount: '' });
   };
@@ -70,72 +100,243 @@ const CreateCampaign = () => {
   };
 
   const addCouncilMember = () => {
-    if (!newCouncilMember) return;
-    if (!newCouncilMember.startsWith('0x') || newCouncilMember.length !== 42) {
-      toast.error("Invalid Ethereum address.");
+    const addr = newCouncilMember.trim();
+    if (!addr) return;
+    if (!addr.startsWith('0x') || addr.length !== 42 || !/^0x[0-9a-fA-F]{40}$/.test(addr)) {
+      toast.error("Invalid Ethereum address format.");
+      return;
+    }
+    if (formData.councilMembers.map(a => a.toLowerCase()).includes(addr.toLowerCase())) {
+      toast.error("This address is already in the council.");
       return;
     }
     setFormData(prev => ({
       ...prev,
-      councilMembers: [...prev.councilMembers, newCouncilMember]
+      councilMembers: [...prev.councilMembers, addr]
     }));
     setNewCouncilMember('');
   };
 
   const removeCouncilMember = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      councilMembers: prev.councilMembers.filter((_, i) => i !== index)
-    }));
+    setFormData(prev => {
+      const updated = prev.councilMembers.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        councilMembers: updated,
+        // Clamp requiredVotes if council shrinks below it
+        requiredVotes: Math.min(prev.requiredVotes, updated.length || 1),
+      };
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.title || !formData.description || !formData.totalGoalAmount || !formData.softCapAmount || !formData.image) {
-      toast.error("Please fill in all required fields.");
+
+    // ── Guard: user must be logged in ────────────────────────────────────
+    if (!user) {
+      toast.error("You must be logged in to create a campaign.");
+      return;
+    }
+
+    const creatorId = user._id || user.id;
+    if (!creatorId) {
+      toast.error("Session error: could not identify your account. Please log in again.");
+      return;
+    }
+
+    // ── Required field checks ─────────────────────────────────────────────
+    if (!formData.title.trim()) { toast.error("Campaign title is required."); return; }
+    if (!formData.description.trim()) { toast.error("Campaign description is required."); return; }
+    if (!formData.image.trim()) { toast.error("Cover image URL is required."); return; }
+    if (!formData.totalGoalAmount) { toast.error("Hard cap (goal amount) is required."); return; }
+    if (!formData.softCapAmount) { toast.error("Soft cap amount is required."); return; }
+    if (!formData.startDate) { toast.error("Start date is required."); return; }
+    if (!formData.endDate) { toast.error("End date is required."); return; }
+
+    // ── Numeric validations ───────────────────────────────────────────────
+    const hardCap = parseFloat(formData.totalGoalAmount);
+    const softCap = parseFloat(formData.softCapAmount);
+
+    if (isNaN(hardCap) || hardCap <= 0) {
+      toast.error("Hard cap must be a positive number.");
+      return;
+    }
+    if (isNaN(softCap) || softCap <= 0) {
+      toast.error("Soft cap must be a positive number.");
+      return;
+    }
+    if (softCap >= hardCap) {
+      toast.error(`Soft cap (${softCap} ETH) must be less than hard cap (${hardCap} ETH).`);
+      return;
+    }
+
+    // ── Date validations ──────────────────────────────────────────────────
+    const startDate = parseDMY(formData.startDate);
+    const endDate = parseDMY(formData.endDate);
+
+    if (!startDate) {
+      toast.error("Start date must be in DD/MM/YYYY format (e.g. 18/01/2026).");
+      return;
+    }
+    if (!endDate) {
+      toast.error("End date must be in DD/MM/YYYY format (e.g. 30/12/2026).");
+      return;
+    }
+
+    const startTs = startDate.getTime();
+    const endTs = endDate.getTime();
+    const nowTs = Date.now();
+
+    if (endTs <= startTs) {
+      toast.error("End date must be after the start date.");
+      return;
+    }
+    if (endTs <= nowTs) {
+      toast.error("End date must be in the future.");
+      return;
+    }
+
+    // ── Governance validations ────────────────────────────────────────────
+    if (formData.councilMembers.length === 0) {
+      toast.error("You must add at least one council member.");
+      return;
+    }
+    const reqVotes = parseInt(formData.requiredVotes, 10);
+    if (!reqVotes || reqVotes < 1) {
+      toast.error("Required votes must be at least 1.");
+      return;
+    }
+    if (reqVotes > formData.councilMembers.length) {
+      toast.error(`Required votes (${reqVotes}) cannot exceed the number of council members (${formData.councilMembers.length}).`);
+      return;
+    }
+
+    // ── Milestone validations ─────────────────────────────────────────────
+    if (formData.milestones.length === 0) {
+      toast.error("You must add at least one milestone.");
+      return;
+    }
+
+    let goalWei, milestoneWeiAmounts;
+    try {
+      goalWei = ethers.parseEther(formData.totalGoalAmount.toString());
+      milestoneWeiAmounts = formData.milestones.map(m =>
+        ethers.parseEther(m.amount.toString())
+      );
+    } catch {
+      toast.error("Invalid ETH amount — please use decimal numbers (e.g. 0.5).");
+      return;
+    }
+
+    const milestoneSum = milestoneWeiAmounts.reduce((a, b) => a + b, 0n);
+    if (milestoneSum !== goalWei) {
+      const diff = milestoneSum > goalWei
+        ? `${ethers.formatEther(milestoneSum - goalWei)} ETH over`
+        : `${ethers.formatEther(goalWei - milestoneSum)} ETH under`;
+      toast.error(`Milestone amounts must sum exactly to ${formData.totalGoalAmount} ETH (currently ${diff}).`);
       return;
     }
 
     try {
       setIsLoading(true);
-      const token = localStorage.getItem("token");
-      
+
+      // ── Phase 1: Register campaign on-chain ───────────────────────────
+      if (!window.ethereum) {
+        throw new Error("MetaMask is not installed. Please install it to create campaigns.");
+      }
+
+      setTxStatus('chain');
+      toast.info("Step 1/2 — Confirm the transaction in MetaMask…");
+
+      // Ensure the user is on the correct network — auto-switch if not
+      await ensureCorrectNetwork();
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
+      if (!contractAddress) throw new Error("Contract address not configured (VITE_CONTRACT_ADDRESS).");
+
+      const contract = new ethers.Contract(contractAddress, UnityGive.abi, signer);
+
+      const orgWallet = await signer.getAddress();
+      const deadlineTimestamp = BigInt(Math.floor(endTs / 1000));
+      const requiredVotesBig = BigInt(reqVotes);
+
+      const tx = await contract.registerCampaign(
+        "",
+        orgWallet,
+        goalWei,
+        formData.councilMembers,
+        requiredVotesBig,
+        milestoneWeiAmounts,
+        deadlineTimestamp
+      );
+
+      toast.info("Transaction submitted — waiting for confirmation…");
+      const receipt = await tx.wait();
+
+      // Extract onChainCampaignId from CampaignRegistered event
+      const registeredEvent = receipt.logs
+        .map(log => { try { return contract.interface.parseLog(log); } catch { return null; } })
+        .find(e => e?.name === 'CampaignRegistered');
+
+      if (!registeredEvent) throw new Error("Could not read campaign ID from transaction receipt.");
+      const onChainCampaignId = Number(registeredEvent.args.campaignId);
+
+      toast.success(`✅ On-chain TX confirmed! Campaign ID: #${onChainCampaignId}`);
+
+      // ── Phase 2: Persist to MongoDB ───────────────────────────────────
+      setTxStatus('db');
+      toast.info("Step 2/2 — Saving campaign details to database…");
+
       const payload = {
         ...formData,
-        creatorId: user._id
+        creatorId,
+        onChainCampaignId,
+        status: 'ACTIVE',
       };
 
-      const res = await fetch("http://localhost:5000/api/campaigns", {
+      const res = await fetch(`${API_BASE}/api/campaigns`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          ...payload,
+          startDate: parseDMY(formData.startDate)?.toISOString(),
+          endDate: parseDMY(formData.endDate)?.toISOString(),
+        })
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to save campaign to database.");
 
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to create campaign.");
-      }
-
-      toast.success("Campaign created successfully!");
+      toast.success("🎉 Campaign created and live on-chain!");
       navigate("/dashboard");
     } catch (error) {
       console.error(error);
-      toast.error(error.message);
+      if (error?.code === 4001 || error?.info?.error?.code === 4001) {
+        toast.error("Transaction rejected in MetaMask. Campaign was not created.");
+      } else if (error?.code === 'INSUFFICIENT_FUNDS') {
+        toast.error("Insufficient ETH in your wallet to pay gas fees.");
+      } else if (error?.code === 'CALL_EXCEPTION') {
+        toast.error(`Contract rejected the transaction: ${error?.reason || 'unknown reason'}.`);
+      } else {
+        toast.error(error.message || "An unexpected error occurred.");
+      }
     } finally {
       setIsLoading(false);
+      setTxStatus('');
     }
   };
+
 
   return (
     <div className="selection:bg-sage-800 selection:text-white flex flex-col font-nunito">
 
       <main className="flex-grow max-w-5xl mx-auto w-full px-6 py-16">
-        <button 
+        <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-sage-800/60 hover:text-sage-800 transition-colors mb-10 font-bold uppercase tracking-widest text-[11px] group"
         >
@@ -177,7 +378,7 @@ const CreateCampaign = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2 flex flex-col">
                 <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Campaign Title</label>
-                <input 
+                <input
                   type="text"
                   name="title"
                   value={formData.title}
@@ -190,7 +391,7 @@ const CreateCampaign = () => {
 
               <div className="space-y-2 flex flex-col">
                 <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Category</label>
-                <select 
+                <select
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
@@ -204,7 +405,7 @@ const CreateCampaign = () => {
 
               <div className="md:col-span-2 space-y-2 flex flex-col">
                 <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Description</label>
-                <textarea 
+                <textarea
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
@@ -218,7 +419,7 @@ const CreateCampaign = () => {
               <div className="md:col-span-2 space-y-2 flex flex-col">
                 <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Cover Image URL</label>
                 <div className="relative">
-                  <input 
+                  <input
                     type="url"
                     name="image"
                     value={formData.image}
@@ -248,7 +449,7 @@ const CreateCampaign = () => {
               <div className="space-y-2 flex flex-col">
                 <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Hard Cap Goal (ETH)</label>
                 <div className="relative">
-                  <input 
+                  <input
                     type="number"
                     step="0.01"
                     name="totalGoalAmount"
@@ -265,7 +466,7 @@ const CreateCampaign = () => {
               <div className="space-y-2 flex flex-col">
                 <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Soft Cap Goal (ETH)</label>
                 <div className="relative">
-                  <input 
+                  <input
                     type="number"
                     step="0.01"
                     name="softCapAmount"
@@ -282,13 +483,14 @@ const CreateCampaign = () => {
               <div className="space-y-2 flex flex-col">
                 <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Start Date</label>
                 <div className="relative">
-                  <input 
-                    type="date"
+                  <input
+                    type="text"
                     name="startDate"
                     value={formData.startDate}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
-                    required
+                    onChange={handleDateInput}
+                    placeholder="DD/MM/YYYY"
+                    maxLength={10}
+                    className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                   />
                   <Calendar size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-earth-900/20 pointer-events-none" />
                 </div>
@@ -297,13 +499,14 @@ const CreateCampaign = () => {
               <div className="space-y-2 flex flex-col">
                 <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">End Date</label>
                 <div className="relative">
-                  <input 
-                    type="date"
+                  <input
+                    type="text"
                     name="endDate"
                     value={formData.endDate}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
-                    required
+                    onChange={handleDateInput}
+                    placeholder="DD/MM/YYYY"
+                    maxLength={10}
+                    className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                   />
                   <Calendar size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-earth-900/20 pointer-events-none" />
                 </div>
@@ -326,10 +529,11 @@ const CreateCampaign = () => {
                 <div className="flex flex-col gap-2">
                   <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Council Members (Wallet Addresses)</label>
                   <div className="flex gap-3">
-                    <input 
+                    <input
                       type="text"
                       value={newCouncilMember}
                       onChange={(e) => setNewCouncilMember(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCouncilMember())}
                       placeholder="0x…"
                       className="flex-grow px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                     />
@@ -352,10 +556,10 @@ const CreateCampaign = () => {
                     <p className="text-sm text-earth-900/40 italic px-2">No council members added yet.</p>
                   )}
                 </div>
-                
+
                 <div className="flex flex-col gap-2 pt-4">
                   <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Required Approval Votes</label>
-                  <input 
+                  <input
                     type="number"
                     name="requiredVotes"
                     min="1"
@@ -373,23 +577,25 @@ const CreateCampaign = () => {
               {/* Milestones */}
               <div className="space-y-6">
                 <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Campaign Milestones</label>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                   <div className="md:col-span-7">
-                    <input 
+                    <input
                       type="text"
                       value={newMilestone.title}
                       onChange={(e) => setNewMilestone(prev => ({ ...prev, title: e.target.value }))}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addMilestone())}
                       placeholder="Milestone title (e.g. Purchase Equipment)"
                       className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                     />
                   </div>
                   <div className="md:col-span-3">
-                    <input 
+                    <input
                       type="number"
                       step="0.01"
                       value={newMilestone.amount}
                       onChange={(e) => setNewMilestone(prev => ({ ...prev, amount: e.target.value }))}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addMilestone())}
                       placeholder="ETH Amount"
                       className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                     />
@@ -434,16 +640,24 @@ const CreateCampaign = () => {
             <div className="flex items-center gap-4 text-earth-900/60">
               <CheckCircle2 size={24} className="text-earth-500" />
               <p className="text-sm font-light max-w-sm">
-                By clicking create, this campaign will be saved as a draft. You will need to deploy it to the blockchain later.
+                {txStatus === 'chain' && 'Waiting for MetaMask confirmation and blockchain TX...'}
+                {txStatus === 'db' && 'Transaction confirmed! Saving to database...'}
+                {!txStatus && 'Clicking create will register this campaign on-chain via MetaMask, then save it to the database.'}
               </p>
             </div>
-            
-            <Button 
+
+            <Button
               type="submit"
               disabled={isLoading}
               className="w-full md:w-auto min-w-[280px] py-8 bg-sage-800 hover:bg-sage-900 text-white rounded-full text-lg shadow-xl shadow-sage-800/20 transition-transform hover:-translate-y-1 active:scale-[0.98] font-bold disabled:opacity-70"
             >
-              {isLoading ? 'Processing…' : 'Create Campaign'}
+              {txStatus === 'chain' && (
+                <span className="flex items-center gap-2"><Loader2 size={18} className="animate-spin" /> Waiting for MetaMask…</span>
+              )}
+              {txStatus === 'db' && (
+                <span className="flex items-center gap-2"><Loader2 size={18} className="animate-spin" /> Saving to Database…</span>
+              )}
+              {!txStatus && 'Create Campaign'}
             </Button>
           </div>
         </form>
