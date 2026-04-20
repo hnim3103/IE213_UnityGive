@@ -245,9 +245,25 @@ const CampaignDetails = () => {
   // currentAmount is accumulated Wei strings from donations (e.g. "500000000000000000")
   // We display both in ETH for consistency
   const targetEth = campaign.totalGoalAmount ? parseFloat(campaign.totalGoalAmount) : 0;
-  const raisedEth = campaign.currentAmount && campaign.currentAmount !== '0'
-    ? parseFloat(ethers.formatEther(BigInt(campaign.currentAmount)))
-    : 0;
+  
+  let raisedEth = 0;
+  if (campaign.currentAmount && campaign.currentAmount.toString() !== '0') {
+    try {
+      const amountStr = campaign.currentAmount.toString();
+      // If it already has a dot and is short, it's likely already in ETH
+      if (amountStr.includes('.') && amountStr.length < 15) {
+        raisedEth = parseFloat(amountStr);
+      } else {
+        // Otherwise treat as Wei string
+        const cleanWei = amountStr.split('.')[0] || '0';
+        raisedEth = parseFloat(ethers.formatEther(cleanWei));
+      }
+    } catch (err) {
+      console.error("Error parsing currentAmount:", err);
+      raisedEth = 0;
+    }
+  }
+
   const progress = targetEth > 0 ? (raisedEth / targetEth) * 100 : 0;
   
   const formatter = new Intl.NumberFormat('en-US', {
