@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import { Button } from "../components/ui/button";
-import { Search, Plus, ArrowLeft } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { CAMPAIGN_TYPES } from "../lib/constant";
 import { toast } from "sonner";
+import { API_BASE } from "../lib/api";
+import { ethers } from "ethers";
 
 const ManagedCampaigns = () => {
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ const ManagedCampaigns = () => {
     const loadCampaigns = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5000/api/campaigns", {
+        const response = await fetch(`${API_BASE}/api/campaigns`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
@@ -63,35 +63,17 @@ const ManagedCampaigns = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-sage-bg flex flex-col items-center justify-center p-6">
+      <div className="flex items-center justify-center h-64">
         <div className="relative">
           <div className="w-16 h-16 border-4 border-sage-200 border-t-sage-800 rounded-full animate-spin" />
-          <div className="absolute inset-0 blur-xl bg-sage-800/10 animate-pulse rounded-full" />
         </div>
-        <h2 className="mt-8 font-fraunces text-2xl text-sage-900">
-          Loading Campaigns…
-        </h2>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-sage-bg selection:bg-sage-800 selection:text-white flex flex-col font-nunito overflow-hidden">
-      <Navbar />
-
-      {/* Hero Background Effects */}
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sage-200/20 rounded-full blur-[120px] -z-10 translate-x-1/3 -translate-y-1/3 animate-pulse" />
-      <div className="absolute top-1/4 left-0 w-[600px] h-[600px] bg-earth-100/30 rounded-full blur-[100px] -z-10 -translate-x-1/2" />
-
-      <main className="flex-grow max-w-7xl mx-auto w-full px-6 lg:px-8 py-16 relative z-10 space-y-12">
-        {/* Back Button */}
-        <Button
-          onClick={() => navigate("/admin/dashboard")}
-          variant="ghost"
-          className="p-2 hover:bg-sage-100 rounded-full transition-colors mb-4"
-        >
-          <ArrowLeft size={20} className="text-sage-800" />
-        </Button>
+    <div className="p-8 space-y-8 min-h-screen bg-sage-bg">
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sage-200/20 rounded-full blur-[120px] -z-10 translate-x-1/3 -translate-y-1/3 pointer-events-none" />
 
         {/* Header */}
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
@@ -261,14 +243,15 @@ const ManagedCampaigns = () => {
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-earth-900/60">Goal Amount</span>
                       <span className="font-bold text-sage-900">
-                        {(Number(campaign.totalGoalAmount) / 1e18).toFixed(2)}{" "}
-                        ETH
+                        {parseFloat(campaign.totalGoalAmount || 0).toFixed(3)} ETH
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-earth-900/60">Current Amount</span>
                       <span className="font-bold text-earth-500">
-                        {(Number(campaign.currentAmount) / 1e18).toFixed(2)} ETH
+                        {campaign.currentAmount && campaign.currentAmount !== '0'
+                          ? parseFloat(ethers.formatEther(BigInt(campaign.currentAmount.toString().split('.')[0]))).toFixed(3)
+                          : '0.000'} ETH
                       </span>
                     </div>
                   </div>
@@ -314,9 +297,6 @@ const ManagedCampaigns = () => {
             </div>
           </div>
         )}
-      </main>
-
-      <Footer />
     </div>
   );
 };

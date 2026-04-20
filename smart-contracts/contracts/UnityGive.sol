@@ -317,8 +317,6 @@ contract UnityGive is ReentrancyGuard {
             require(success, "Failed to refund excess");
         }
 
-        // Release any pending approved milestones after top-up
-        _releasePendingMilestones(campaignId);
     }
     // ─────────────────────────────────────────────
     // INTERNAL HELPER FUNCTIONS
@@ -327,11 +325,8 @@ contract UnityGive is ReentrancyGuard {
      * @notice Internal function to release pending milestones that have been approved but lacked funds
      * @dev Called after donate() and topUpCampaign() to auto-release funds to pending milestones in sequential order
      */
-    function _releasePendingMilestones(uint256 /* campaignId */) private pure {
-        // Milestone releases must be executed via `releaseMilestoneWithSignatures` to ensure
-        // signatures from top-5 donors are present. This helper is intentionally a no-op
-        // to prevent automatic transfers but keeps the original call signature.
-        return;
+    function _releasePendingMilestones() private pure {
+    return;
     }
     // ─────────────────────────────────────────────
     // MULTI-SIG COUNCIL FUNCTIONS

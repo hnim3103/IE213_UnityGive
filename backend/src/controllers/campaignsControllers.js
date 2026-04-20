@@ -31,11 +31,9 @@ export const createCampaign = async (req, res) => {
     const {
       title, description, totalGoalAmount, softCapAmount, requiredVotes,
       milestones, councilMembers, category, image,
-      startDate, endDate, creatorId, ambassadors
+      startDate, endDate, creatorId, ambassadors,
+      onChainCampaignId, status
     } = req.body;
-
-    // In a production environment, you might dispatch the Web3 transaction here 
-    // to UnityGive.sol via ethers.js. For now, we save the Multi-Sig struct to DB.
 
     const campaign = new Campaign({
       title,
@@ -51,16 +49,24 @@ export const createCampaign = async (req, res) => {
       startDate,
       endDate,
       creatorId,
-      ambassadors
+      ambassadors,
+      ...(onChainCampaignId !== undefined && { onChainCampaignId }),
+      ...(status && { status }),
     });
 
     const newCampaign = await campaign.save();
     res.status(201).json(newCampaign);
   } catch (error) {
-    console.error("Failed to execute createCampaign", error);
+    console.error("Failed to execute createCampaign:", error.message);
+    // Surface Mongoose validation errors to the client for easier debugging
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(e => e.message).join(', ');
+      return res.status(400).json({ message: `Validation error: ${messages}` });
+    }
     res.status(500).json({ message: "An internal error occurred" });
   }
 };
+
 
 export const updateCampaign = async (req, res) => {
   try {

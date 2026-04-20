@@ -17,6 +17,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ManagedCampaigns from "./pages/ManagedCampaigns";
 import CreateCampaign from "./pages/CreateCampaign";
 import EditCampaign from "./pages/EditCampaign";
+import AdminUsers from "./pages/AdminUsers";
+import AdminVerifications from "./pages/AdminVerifications";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
@@ -99,6 +101,8 @@ function App() {
             <Route path="campaigns" element={<ManagedCampaigns />} />
             <Route path="campaigns/create" element={<CreateCampaign />} />
             <Route path="campaigns/:id/edit" element={<EditCampaign />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="verifications" element={<AdminVerifications />} />
           </Route>
 
           {/* GLOBAL 404 */}

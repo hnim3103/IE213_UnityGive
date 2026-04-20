@@ -121,7 +121,7 @@ export async function web3Login(walletAddress, signature) {
   
   let recoveredAddress;
   try {
-    recoveredAddress = ethers.utils.verifyMessage(message, signature);
+    recoveredAddress = ethers.verifyMessage(message, signature);
   } catch (error) {
     throw { status: 400, message: "Invalid signature format" };
   }

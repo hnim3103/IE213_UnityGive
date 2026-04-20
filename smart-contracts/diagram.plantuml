@@ -3,12 +3,12 @@ title UnityGive - Detailed Sequence Diagram\n(Multi-Sig + Milestone + Deadline +
 
 actor Admin
 actor Donor
-actor "Organization" as Org
+
 actor "Council Member" as Council
 participant "UnityGive Contract" as Contract
 
 == 1. Register Campaign ==
-Admin -> Contract: registerCampaign(mongoId, orgWallet, goalAmount, councilMembers, requiredVotes, milestoneAmounts, deadline) [onlyAdmin]
+Admin -> Contract: registerCampaign(mongoId, goalAmount, councilMembers, requiredVotes, milestoneAmounts, deadline) [onlyAdmin]
 activate Contract
 loop For each milestone
     Contract -> Contract: create Milestone(amount, ipfsEvidence="", approvalCount=0, isApproved=false, isFunded=false)
@@ -27,8 +27,8 @@ loop Multiple donations
         Contract -> Contract: excess = (currentAmount + msg.value) - goalAmount
         Contract -> Contract: added = msg.value - excess
         Contract -> Contract: currentAmount += added; donations[donor] += added
-        Contract --> Org: transfer(excess) via low-level call {}
-        note right: ✓ Excess sent immediately to organization
+        Contract --> Admin: transfer(excess) via low-level call to treasuryWallet {}
+        note right: ✓ Excess sent immediately to treasury
         Contract --> Donor: emit DonationReceived(campaignId, donor, added)
     else normal donation
         Contract -> Contract: currentAmount += msg.value; donations[donor] += msg.value
@@ -38,10 +38,10 @@ loop Multiple donations
 end
 
 == 3. Milestone Proof & Multi-Sig Approval ==
-Org -> Contract: uploadProofOfImpact(campaignId, milestoneIndex, ipfsCID) [onlyOrganization]
+Admin -> Contract: uploadProofOfImpact(campaignId, milestoneIndex, ipfsCID) [onlyAdmin]
 activate Contract
 Contract -> Contract: m.ipfsEvidence = ipfsCID; require(!m.isApproved)
-Contract --> Org: emit ProofUploaded(campaignId, milestoneIndex, ipfsCID)
+Contract --> Admin: emit ProofUploaded(campaignId, milestoneIndex, ipfsCID)
 deactivate Contract
 
 loop Multiple council votes (until threshold reached)
@@ -57,8 +57,8 @@ loop Multiple council votes (until threshold reached)
        
         alt sufficient balance (currentAmount >= m.amount)
             Contract -> Contract: m.isFunded = true; currentAmount -= m.amount
-            Contract --> Org: transfer(m.amount) via low-level call {}
-            Contract --> Org: emit FundsReleased(campaignId, milestoneIndex, orgWallet, amount)
+            Contract --> Admin: transfer(m.amount) via low-level call to treasuryWallet {}
+            Contract --> Admin: emit FundsReleased(campaignId, milestoneIndex, treasuryWallet, amount)
             note right: ✓ Funds released immediately
         else insufficient balance (PENDING)
             note right: ⏳ Milestone approved but isFunded=false\nWaiting for more donations or top-up
@@ -74,16 +74,16 @@ note over Contract #lightblue
 end note
 
 alt Goal NOT reached after deadline
-    Org -> Contract: topUpCampaign(campaignId) {value: needed} [onlyOrganization]
+    Admin -> Contract: topUpCampaign(campaignId) {value: needed} [onlyAdmin]
     activate Contract
     Contract -> Contract: require(deadline passed && currentAmount < goalAmount)
     Contract -> Contract: needed = totalGoalAmount - currentAmount
     Contract -> Contract: require(msg.value >= needed)
     Contract -> Contract: excess = msg.value - needed
     Contract -> Contract: currentAmount = totalGoalAmount; isSuccessful = true
-    Contract --> Org: emit DonationReceived(campaignId, Org, needed)
+    Contract --> Admin: emit DonationReceived(campaignId, Admin, needed)
     alt excess > 0
-        Contract --> Org: transfer(excess) via low-level call {}
+        Contract --> Admin: transfer(excess) via low-level call to treasuryWallet {}
     end
     deactivate Contract
 else Goal already reached

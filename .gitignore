@@ -7,3 +7,5 @@ source_dump.txt
 .agents
 .skills-lock.json
 skills-lock.json
+.gitignore
+roadmap.md

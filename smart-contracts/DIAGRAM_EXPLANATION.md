@@ -2,11 +2,11 @@
 
 ## 📋 Tổng Quan Hệ Thống
 
-UnityGive là hệ thống quyên góp từ thiện sử dụng **Multi-Signature (Multi-Sig)** smart contract trên blockchain Ethereum. Hệ thống này cho phép:
+UnityGive là hệ thống quyên góp từ thiện tập trung sử dụng **Multi-Signature (Multi-Sig)** smart contract trên blockchain Ethereum. Hệ thống do 1 tổ chức duy nhất (Admin) quản lý và cho phép:
 - **Donors** gửi tiền ETH cho một chiến dịch từ thiện
-- **Organizations** tải lên bằng chứng tác động (Proof of Impact) để yêu cầu phát hành tiền
+- **Admin** tạo chiến dịch và tải lên bằng chứng tác động (Proof of Impact) để yêu cầu phát hành tiền
 - **Council Members** biểu quyết phê duyệt phát hành tiền dựa trên bằng chứng
-- **Admin** quản lý chiến dịch và hủy nếu cần thiết
+- Quỹ sau khi được phê duyệt sẽ chảy về một ví **Treasury Wallet** duy nhất của quản trị.
 
 ---
 
@@ -18,14 +18,14 @@ Admin tạo một chiến dịch từ thiện mới với các mốc funding (mi
 ### Luồng Chi Tiết
 
 ```
-Admin -> Contract: registerCampaign(mongoId, orgWallet, goalAmount, councilMembers, requiredVotes, milestoneAmounts, deadline) [onlyAdmin]
+Admin -> Contract: registerCampaign(mongoId, goalAmount, councilMembers, requiredVotes, milestoneAmounts, deadline) [onlyAdmin]
 ```
 
 **Điều kiện & Yêu cầu:**
 - Chỉ Admin mới có quyền call function này (modifier `onlyAdmin`)
 - Các tham số bắt buộc:
   - `mongoId`: unique ID trong database MongoDB
-  - `orgWallet`: địa chỉ ví Ethereum của tổ chức
+
   - `goalAmount`: tổng tiền cần quyên góp (Wei)
   - `councilMembers[]`: danh sách địa chỉ thành viên hội đồng
   - `requiredVotes`: số phiếu tối thiểu để phê duyệt 1 milestone (VD: 3/5)
@@ -45,7 +45,7 @@ Admin -> Contract: registerCampaign(mongoId, orgWallet, goalAmount, councilMembe
 // Tạo Campaign struct
 campaigns[campaignId] = Campaign {
     mongoId: mongoId,
-    orgWallet: orgWallet,
+
     totalGoalAmount: goalAmount,
     currentAmount: 0,                    // Bắt đầu từ 0
     requiredVotes: requiredVotes,
@@ -82,7 +82,7 @@ for each milestone in milestoneAmounts:
 ## 💰 Bước 2: Luồng Đóng Góp & Xử Lý Tiền Thừa (Donation Flow)
 
 ### Mục đích
-Donors gửi ETH cho chiến dịch. Nếu vượt mục tiêu, tiền thừa được gửi ngay cho Organization.
+Donors gửi ETH cho chiến dịch. Nếu vượt mục tiêu, tiền thừa được gửi ngay cho Ví Ngân Khố (Treasury).
 
 ### Luồng Chi Tiết
 
@@ -151,7 +151,7 @@ Organization chứng minh họ đã làm công việc, Council biểu quyết ph
 ### Phần A: Tải Lên Bằng Chứng (Upload Proof of Impact)
 
 ```
-Org -> Contract: uploadProofOfImpact(campaignId, milestoneIndex, ipfsCID) [onlyOrganization]
+Admin -> Contract: uploadProofOfImpact(campaignId, milestoneIndex, ipfsCID) [onlyAdmin]
 ```
 
 **Điều Kiện:**
@@ -296,7 +296,7 @@ block.timestamp > deadline && currentAmount < totalGoalAmount
 ### Luồng Chi Tiết
 
 ```
-Org -> Contract: topUpCampaign(campaignId) {value: 40 ETH} [onlyOrganization]
+Admin -> Contract: topUpCampaign(campaignId) {value: 40 ETH} [onlyAdmin]
 ```
 
 **Kiểm Tra:**
@@ -494,6 +494,3 @@ UnityGive hoạt động dựa trên **trust + transparency**:
 Smart contract đảm bảo **tất cả điều kiện được kiểm tra tự động**, không ai có thể thao túng.
 
 ---
-
-**Created:** March 2026
-**Phiên bản:** 1.0 - Chi tiết đầy đủ
