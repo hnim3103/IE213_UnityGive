@@ -3,13 +3,13 @@ const { ethers } = require("hardhat");
 
 describe("UnityGive Multi-Sig & Milestone Contract", function () {
     let UnityGive, unityGive;
-    let admin, orgWallet, donor1, donor2, council1, council2, council3;
+    let admin, treasuryWallet, donor1, donor2, council1, council2, council3;
     let deadline;   // deadline
 
     beforeEach(async function () {
-        [admin, orgWallet, donor1, donor2, council1, council2, council3] = await ethers.getSigners();
+        [admin, treasuryWallet, donor1, donor2, council1, council2, council3] = await ethers.getSigners();
         UnityGive = await ethers.getContractFactory("UnityGive");
-        unityGive = await UnityGive.deploy();
+        unityGive = await UnityGive.deploy(treasuryWallet.address);
 
         // deadline = 30, test campaignNotExpired
         const block = await ethers.provider.getBlock("latest");
@@ -28,7 +28,6 @@ describe("UnityGive Multi-Sig & Milestone Contract", function () {
         // Connect as admin and explicitly pass the arrays
         const tx = await unityGive.connect(admin).registerCampaign(
             mongoId,
-            orgWallet.address,
             goalAmount,
             councilMembers,
             requiredVotes,
@@ -55,7 +54,6 @@ describe("UnityGive Multi-Sig & Milestone Contract", function () {
 
         await unityGive.connect(admin).registerCampaign(
             "mongo123", 
-            orgWallet.address, 
             goalAmount, 
             councilMembers, 
             2, 
@@ -71,7 +69,7 @@ describe("UnityGive Multi-Sig & Milestone Contract", function () {
         expect(campaign.currentAmount).to.equal(ethers.parseEther("3.0"));
 
         // Org uploads proof for Milestone 0
-        await unityGive.connect(orgWallet).uploadProofOfImpact(0, 0, "ipfs://qm123...");
+        await unityGive.connect(admin).uploadProofOfImpact(0, 0, "ipfs://qm123...");
 
         // Council 1 votes
         await unityGive.connect(council1).voteApproveMilestone(0, 0);
@@ -80,7 +78,7 @@ describe("UnityGive Multi-Sig & Milestone Contract", function () {
         const tx = await unityGive.connect(council2).voteApproveMilestone(0, 0);
 
         // Expect FundsReleased event for Milestone 0 (2.0 ETH)
-        await expect(tx).to.emit(unityGive, "FundsReleased").withArgs(0, 0, orgWallet.address, ethers.parseEther("2.0"));
+        await expect(tx).to.emit(unityGive, "FundsReleased").withArgs(0, 0, treasuryWallet.address, ethers.parseEther("2.0"));
 
         // Check the remaining balance
         campaign = await unityGive.getCampaign(0);
@@ -98,7 +96,6 @@ describe("UnityGive Multi-Sig & Milestone Contract", function () {
 
         await unityGive.connect(admin).registerCampaign(
             "excess-test", 
-            orgWallet.address, 
             goalAmount, 
             councilMembers, 
             1, 
@@ -122,7 +119,6 @@ describe("UnityGive Multi-Sig & Milestone Contract", function () {
         const shortDeadline = (await ethers.provider.getBlock("latest")).timestamp + 10; // 10 seconds
         await unityGive.connect(admin).registerCampaign(
             "topup-test", 
-            orgWallet.address, 
             goalAmount, 
             councilMembers, 
             1, 
@@ -134,8 +130,8 @@ describe("UnityGive Multi-Sig & Milestone Contract", function () {
         await ethers.provider.send("evm_increaseTime", [20]);
         await ethers.provider.send("evm_mine");
 
-        // Organization tops up the remaining amount
-        await unityGive.connect(orgWallet).topUpCampaign(0, { value: ethers.parseEther("5.0") });
+        // Admin tops up the remaining amount
+        await unityGive.connect(admin).topUpCampaign(0, { value: ethers.parseEther("5.0") });
 
         const campaign = await unityGive.getCampaign(0);
         expect(campaign.currentAmount).to.equal(goalAmount);

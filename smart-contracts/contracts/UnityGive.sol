@@ -23,7 +23,6 @@ contract UnityGive is ReentrancyGuard {
     }
     struct Campaign {
         string mongoId;
-        address payable orgWallet;
         uint256 totalGoalAmount;
         uint256 currentAmount; // Total ETH donated
         uint256 requiredVotes; // Multi-Sig threshold (e.g. 3 out of 5)
@@ -35,6 +34,7 @@ contract UnityGive is ReentrancyGuard {
     // STATE VARIABLES
     // ─────────────────────────────────────────────
     address public admin;
+    address payable public treasuryWallet;
     uint256 public campaignCount;
     mapping(uint256 => Campaign) public campaigns;
   
@@ -57,7 +57,7 @@ contract UnityGive is ReentrancyGuard {
     event ProofUploaded(uint256 indexed campaignId, uint256 milestoneIndex, string ipfsCID);
     event Voted(uint256 indexed campaignId, uint256 milestoneIndex, address indexed voter);
     event MilestoneApproved(uint256 indexed campaignId, uint256 milestoneIndex);
-    event FundsReleased(uint256 indexed campaignId, uint256 milestoneIndex, address indexed orgWallet, uint256 amount);
+    event FundsReleased(uint256 indexed campaignId, uint256 milestoneIndex, address indexed treasury, uint256 amount);
     event CampaignCancelled(uint256 indexed campaignId);
     event RefundIssued(uint256 indexed campaignId, address indexed donor, uint256 amount);
     // ─────────────────────────────────────────────
@@ -71,10 +71,7 @@ contract UnityGive is ReentrancyGuard {
         require(isCouncilMember[campaignId][msg.sender], "Not a council member for this campaign");
         _;
     }
-    modifier onlyOrganization(uint256 campaignId) {
-        require(msg.sender == campaigns[campaignId].orgWallet, "Only campaign organization");
-        _;
-    }
+
     modifier campaignExists(uint256 campaignId) {
         require(campaignId < campaignCount, "Campaign does not exist");
         _;
@@ -90,8 +87,10 @@ contract UnityGive is ReentrancyGuard {
     // ─────────────────────────────────────────────
     // CONSTRUCTOR
     // ─────────────────────────────────────────────
-    constructor() {
+    constructor(address payable _treasuryWallet) {
         admin = msg.sender;
+        require(_treasuryWallet != address(0), "Invalid treasury wallet");
+        treasuryWallet = _treasuryWallet;
     }
     // ─────────────────────────────────────────────
     // ADMIN FUNCTIONS
@@ -101,14 +100,12 @@ contract UnityGive is ReentrancyGuard {
      */
     function registerCampaign(
         string memory mongoId,
-        address payable orgWallet,
         uint256 goalAmount,
         address[] memory councilMembers,
         uint256 requiredVotes,
         uint256[] memory milestoneAmounts,
         uint256 deadline
     ) external onlyAdmin returns (uint256) {
-        require(orgWallet != address(0), "Invalid org wallet");
         require(goalAmount > 0, "Goal must be > 0");
         require(councilMembers.length > 0, "Must have council members");
         require(requiredVotes > 0 && requiredVotes <= councilMembers.length, "Invalid vote threshold");
@@ -125,7 +122,6 @@ contract UnityGive is ReentrancyGuard {
       
         campaigns[campaignId] = Campaign({
             mongoId: mongoId,
-            orgWallet: orgWallet,
             totalGoalAmount: goalAmount,
             currentAmount: 0,
             requiredVotes: requiredVotes,
@@ -186,10 +182,10 @@ contract UnityGive is ReentrancyGuard {
         donations[campaignId][msg.sender] += added;
         emit DonationReceived(campaignId, msg.sender, added);
 
-        // If excess → send immediately to organization
+        // If excess → send immediately to treasury
         if (excess > 0) {
-            (bool success, ) = c.orgWallet.call{value: excess}("");
-            require(success, "Failed to send excess to organization");
+            (bool success, ) = treasuryWallet.call{value: excess}("");
+            require(success, "Failed to send excess to treasury");
         }
 
         // Mark campaign as successful if goal is reached
@@ -231,7 +227,7 @@ contract UnityGive is ReentrancyGuard {
         external
         campaignExists(campaignId)
         campaignIsActive(campaignId)
-        onlyOrganization(campaignId)
+        onlyAdmin
     {
         require(milestoneIndex < campaignMilestones[campaignId].length, "Invalid milestone");
         Milestone storage m = campaignMilestones[campaignId][milestoneIndex];
@@ -247,7 +243,7 @@ contract UnityGive is ReentrancyGuard {
         external
         payable
         campaignExists(campaignId)
-        onlyOrganization(campaignId)
+        onlyAdmin
     {
         Campaign storage c = campaigns[campaignId];
         require(block.timestamp > c.deadline, "Campaign has not expired yet");
@@ -264,7 +260,7 @@ contract UnityGive is ReentrancyGuard {
         emit DonationReceived(campaignId, msg.sender, needed);
 
         if (excess > 0) {
-            (bool success, ) = c.orgWallet.call{value: excess}("");
+            (bool success, ) = treasuryWallet.call{value: excess}("");
             require(success, "Failed to refund excess");
         }
 
@@ -289,10 +285,10 @@ contract UnityGive is ReentrancyGuard {
                 m.isFunded = true;
                 c.currentAmount -= m.amount;
                
-                (bool success, ) = c.orgWallet.call{value: m.amount}("");
-                require(success, "ETH transfer to Organization failed");
+                (bool success, ) = treasuryWallet.call{value: m.amount}("");
+                require(success, "ETH transfer to Treasury failed");
                
-                emit FundsReleased(campaignId, i, c.orgWallet, m.amount);
+                emit FundsReleased(campaignId, i, treasuryWallet, m.amount);
             } 
             // Stop at the first unapproved milestone to maintain milestone order
             else if (!m.isApproved) {
@@ -336,9 +332,9 @@ contract UnityGive is ReentrancyGuard {
                 m.isFunded = true;
                 c.currentAmount -= m.amount;
               
-                (bool success, ) = c.orgWallet.call{value: m.amount}("");
-                require(success, "ETH transfer to Organization failed");
-                emit FundsReleased(campaignId, milestoneIndex, c.orgWallet, m.amount);
+                (bool success, ) = treasuryWallet.call{value: m.amount}("");
+                require(success, "ETH transfer to Treasury failed");
+                emit FundsReleased(campaignId, milestoneIndex, treasuryWallet, m.amount);
             }
         }
     }
