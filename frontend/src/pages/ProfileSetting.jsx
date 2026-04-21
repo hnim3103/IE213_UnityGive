@@ -61,9 +61,6 @@ const ProfileSetting = () => {
   const handleFileChange = async (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      // Note: Ideally you would first upload this file to a server/S3 and get the URL back.
-      // Since we just have the `avatar` string field in the PUT route, we will keep local preview.
-      // You should replace this part with a real upload logic returning the URL.
       const tempUrl = URL.createObjectURL(file);
       setFormData({ ...formData, avatar: tempUrl });
     }
@@ -73,12 +70,48 @@ const ProfileSetting = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
+      // Update profile info
       await api.put("/api/users/profile", {
         name: formData.name,
         phone: formData.phone,
         avatar: formData.avatar,
         walletAddress: formData.walletAddress,
       });
+
+      // Change password if fields are filled
+      if (formData.newPassword || formData.confirmPassword) {
+        if (!formData.newPassword || !formData.confirmPassword) {
+          toast.error("Please fill in both new password fields");
+          setIsLoading(false);
+          return;
+        }
+
+        if (formData.newPassword !== formData.confirmPassword) {
+          toast.error("New passwords do not match");
+          setIsLoading(false);
+          return;
+        }
+
+        if (formData.newPassword.length < 8) {
+          toast.error("Password must be at least 8 characters long");
+          setIsLoading(false);
+          return;
+        }
+
+        await api.post("/api/users/change-password", {
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword,
+          confirmPassword: formData.confirmPassword,
+        });
+
+        setFormData((prev) => ({
+          ...prev,
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        }));
+      }
+
       toast.success("Profile updated successfully!");
     } catch (error) {
       console.error(error);
@@ -343,9 +376,10 @@ const ProfileSetting = () => {
                   type="password"
                   name="currentPassword"
                   value={formData.currentPassword}
+                  onChange={handleChange}
                   placeholder="••••••••"
-                  disabled
-                  className="w-full bg-[#f6f6f6] border-0 rounded-[12px] px-4 py-3.5 text-gray-500 text-[13px] font-mono cursor-not-allowed outline-none overflow-hidden text-ellipsis whitespace-nowrap"
+                  autoComplete="current-password"
+                  className="w-full bg-[#f6f6f6] border-0 rounded-[12px] px-4 py-3.5 text-gray-800 text-sm focus:ring-2 focus:ring-[#2C3B2E]/20 outline-none placeholder-gray-400 font-mono tracking-widest text-lg h-[46px]"
                 />
               </div>
               <div>
@@ -390,9 +424,9 @@ const ProfileSetting = () => {
                 />
               </svg>
               <p className="text-xs text-gray-500 leading-relaxed font-medium">
-                To keep your account secure, passwords should be at least 12
-                characters long and include a mix of uppercase letters, symbols,
-                and numbers.
+                <strong>Password Fields:</strong> Leave empty to keep your
+                current password. To change your password, fill in your current
+                password and the new password (minimum 8 characters).
               </p>
             </div>
           </div>

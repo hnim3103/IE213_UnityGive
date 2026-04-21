@@ -36,47 +36,13 @@ function App() {
 
       <BrowserRouter>
         <Routes>
-          {/* PUBLIC LAYOUT */}
+          {/* PUBLIC LAYOUT (with Navbar + Footer) */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/campaigns" element={<Campaigns />} />
             <Route path="/campaigns/:id" element={<CampaignDetails />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/faq" element={<FAQPage />} />
-
-            {/* AUTH ROUTES */}
-            <Route
-              path="/signup"
-              element={
-                <PublicRoute>
-                  <Signup />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/login"
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/forgot-password"
-              element={
-                <PublicRoute>
-                  <ForgotPassword />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/reset-password/:token"
-              element={
-                <PublicRoute>
-                  <ResetPassword />
-                </PublicRoute>
-              }
-            />
 
             {/* USER PROTECTED */}
             <Route
@@ -96,6 +62,40 @@ function App() {
               }
             />
           </Route>
+
+          {/* AUTH ROUTES — no Navbar / Footer */}
+          <Route
+            path="/signup"
+            element={
+              <PublicRoute>
+                <Signup />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <PublicRoute>
+                <ForgotPassword />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/reset-password/:token"
+            element={
+              <PublicRoute>
+                <ResetPassword />
+              </PublicRoute>
+            }
+          />
 
           {/* ADMIN ROUTES (NESTED CLEANLY) */}
           <Route
