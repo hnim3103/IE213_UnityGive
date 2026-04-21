@@ -10,6 +10,9 @@ import ResetPassword from "./pages/ResetPassword";
 import CampaignDetails from "./pages/CampaignDetails";
 import FAQPage from "./pages/FAQPage";
 import AboutUs from "./pages/AboutUs";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import ContactSupport from "./pages/ContactSupport";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 
@@ -43,6 +46,9 @@ function App() {
             <Route path="/campaigns/:id" element={<CampaignDetails />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/faq" element={<FAQPage />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/contact" element={<ContactSupport />} />
 
             {/* USER PROTECTED */}
             <Route
