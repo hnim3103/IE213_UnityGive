@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import metaMaskIcon from '../../assets/metamask.svg';
-import Footer from '@/components/Footer';
+
 
 import { API_BASE } from '@/lib/api';
 import { ensureCorrectNetwork } from '@/lib/network';
@@ -155,9 +155,6 @@ export const AuthLayout = ({
         </Card>
       </main>
 
-      <div className='w-full mt-30'>
-        <Footer />
-      </div>
     </div>
 
   );
