@@ -40,7 +40,7 @@ const AdminDashboard = () => {
   });
   const [openUserMenuId, setOpenUserMenuId] = useState(null);
   const [openCampaignMenuId, setOpenCampaignMenuId] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -62,20 +62,21 @@ const AdminDashboard = () => {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("No token found");
 
-        const [usersRes, campaignsRes, donationsRes, kycRes] = await Promise.all([
-          fetch(`${API_BASE}/api/users`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE}/api/campaigns`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE}/api/donations`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE}/api/users/kyc/pending`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+        const [usersRes, campaignsRes, donationsRes, kycRes] =
+          await Promise.all([
+            fetch(`${API_BASE}/api/users`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch(`${API_BASE}/api/campaigns`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch(`${API_BASE}/api/donations`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch(`${API_BASE}/api/users/kyc/pending`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+          ]);
 
         const usersData = await usersRes.json();
         const campaignsData = await campaignsRes.json();
@@ -106,22 +107,31 @@ const AdminDashboard = () => {
   const handleUpdateCampaign = async (id, currentStatus) => {
     // Basic cycle: ACTIVE -> PAUSED -> CANCELLED (or similar)
     // For simplicity, we just trigger a confirm for PAUSE/CANCEL based on current
-    let newStatus = currentStatus === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
-    if (newStatus === 'PAUSED' && !window.confirm("Are you sure you want to pause this campaign?")) return;
+    let newStatus = currentStatus === "ACTIVE" ? "PAUSED" : "ACTIVE";
+    if (
+      newStatus === "PAUSED" &&
+      !window.confirm("Are you sure you want to pause this campaign?")
+    )
+      return;
 
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API_BASE}/api/campaigns/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ status: newStatus })
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error("Failed to update campaign");
       toast.success(`Campaign ${newStatus.toLowerCase()}`);
 
-      setAdminData(prev => ({
+      setAdminData((prev) => ({
         ...prev,
-        campaigns: prev.campaigns.map(c => c._id === id ? { ...c, status: newStatus } : c)
+        campaigns: prev.campaigns.map((c) =>
+          c._id === id ? { ...c, status: newStatus } : c,
+        ),
       }));
       setOpenCampaignMenuId(null);
     } catch (err) {
@@ -131,36 +141,44 @@ const AdminDashboard = () => {
 
   const handleUpdateUser = async (id, actionType, currentValue) => {
     let payload = {};
-    if (actionType === 'role') {
-      const newRole = currentValue === 'admin' ? 'donor' : 'admin';
-      if (!window.confirm(`Are you sure you want to change role to ${newRole}?`)) return;
+    if (actionType === "role") {
+      const newRole = currentValue === "admin" ? "donor" : "admin";
+      if (
+        !window.confirm(`Are you sure you want to change role to ${newRole}?`)
+      )
+        return;
       payload = { role: newRole };
-    } else if (actionType === 'status') {
-      const newStatus = currentValue === 'active' ? 'suspended' : 'active';
-      if (!window.confirm(`Are you sure you want to mark user as ${newStatus}?`)) return;
+    } else if (actionType === "status") {
+      const newStatus = currentValue === "active" ? "suspended" : "active";
+      if (
+        !window.confirm(`Are you sure you want to mark user as ${newStatus}?`)
+      )
+        return;
       payload = { status: newStatus };
     }
 
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API_BASE}/api/users/${id}/manage`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload)
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Failed to update user");
       toast.success("User updated");
 
-      setAdminData(prev => ({
+      setAdminData((prev) => ({
         ...prev,
-        users: prev.users.map(u => u._id === id ? { ...u, ...payload } : u)
+        users: prev.users.map((u) => (u._id === id ? { ...u, ...payload } : u)),
       }));
       setOpenUserMenuId(null);
     } catch (err) {
       toast.error(err.message);
     }
   };
-
 
   if (loading) {
     return (
@@ -241,13 +259,16 @@ const AdminDashboard = () => {
     ).toFixed(3);
 
     const targetEth = parseFloat(campaign.totalGoalAmount || 0);
-    const raisedWei = campaign.currentAmount && campaign.currentAmount !== '0'
-      ? BigInt(campaign.currentAmount.toString().split('.')[0])
-      : 0n;
-    const raisedEth = raisedWei > 0n
-      ? parseFloat((Number(raisedWei) / 1e18).toFixed(6))
-      : 0;
-    const progress = targetEth > 0 ? Math.min(100, Math.round((raisedEth / targetEth) * 100)) : 0;
+    const raisedWei =
+      campaign.currentAmount && campaign.currentAmount !== "0"
+        ? BigInt(campaign.currentAmount.toString().split(".")[0])
+        : 0n;
+    const raisedEth =
+      raisedWei > 0n ? parseFloat((Number(raisedWei) / 1e18).toFixed(6)) : 0;
+    const progress =
+      targetEth > 0
+        ? Math.min(100, Math.round((raisedEth / targetEth) * 100))
+        : 0;
 
     return {
       id: campaign._id,
@@ -264,7 +285,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-sage-bg selection:bg-sage-800 selection:text-white flex flex-col font-nunito overflow-hidden">
-
       {/* Hero Background Effects */}
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sage-200/20 rounded-full blur-[120px] -z-10 translate-x-1/3 -translate-y-1/3 animate-pulse" />
       <div className="absolute top-1/4 left-0 w-[600px] h-[600px] bg-earth-100/30 rounded-full blur-[100px] -z-10 -translate-x-1/2" />
@@ -312,7 +332,7 @@ const AdminDashboard = () => {
 
           <div className="flex gap-4">
             <Button
-              onClick={() => toast.info("Admin settings panel coming soon!")}
+              onClick={() => navigate("/profile")}
               variant="outline"
               className="rounded-full px-8 py-6 border-sage-800/20 text-sage-800 hover:bg-sage-800/5 transition-colors font-bold"
             >
@@ -324,7 +344,7 @@ const AdminDashboard = () => {
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 w-full mt-12 animate-in fade-in duration-700 items-start">
           {/* Main Content Area */}
           <div className="flex-grow min-w-0">
-            {activeTab === 'overview' && (
+            {activeTab === "overview" && (
               <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                 {adminStats.map((stat, i) => (
                   <div
@@ -355,7 +375,7 @@ const AdminDashboard = () => {
               </section>
             )}
 
-            {activeTab === 'campaigns' && (
+            {activeTab === "campaigns" && (
               <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
@@ -370,7 +390,9 @@ const AdminDashboard = () => {
                       onClick={() => navigate("/create-campaign")}
                       className="bg-sage-800 text-white rounded-xl shadow-sm hover:bg-sage-900 text-xs px-4 border border-sage-900/10 transition-colors py-2 font-bold"
                     >
-                      <span className="material-symbols-outlined text-[16px] mr-1.5 align-middle">add</span>
+                      <span className="material-symbols-outlined text-[16px] mr-1.5 align-middle">
+                        add
+                      </span>
                       Create Campaign
                     </Button>
                   </div>
@@ -381,7 +403,9 @@ const AdminDashboard = () => {
                       {myCampaigns.length}
                     </span>
                     <Button
-                      onClick={() => setCampaignPage(Math.max(0, campaignPage - 1))}
+                      onClick={() =>
+                        setCampaignPage(Math.max(0, campaignPage - 1))
+                      }
                       disabled={campaignPage === 0}
                       variant="ghost"
                       className="p-2 hover:bg-sage-100 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -448,7 +472,10 @@ const AdminDashboard = () => {
                                   {item.category}
                                 </span>
                                 <span className="flex items-center gap-1.5 text-[10px] font-bold text-earth-900/50 uppercase tracking-[0.2em]">
-                                  <Activity size={12} className="text-earth-500" />
+                                  <Activity
+                                    size={12}
+                                    className="text-earth-500"
+                                  />
                                   {item.status}
                                 </span>
                               </div>
@@ -482,7 +509,9 @@ const AdminDashboard = () => {
                               </div>
                               <div className="flex gap-2 w-full relative">
                                 <Button
-                                  onClick={() => navigate("/campaigns/" + item.id)}
+                                  onClick={() =>
+                                    navigate("/campaigns/" + item.id)
+                                  }
                                   variant="outline"
                                   className="flex-grow rounded-2xl border-sage-800/20 text-sage-800 text-[10px] font-bold uppercase tracking-[0.1em] py-5 hover:bg-sage-800 hover:text-white transition-colors shadow-sm whitespace-nowrap px-4"
                                 >
@@ -493,7 +522,11 @@ const AdminDashboard = () => {
                                   className="px-3 rounded-2xl border-sage-800/20 text-sage-800 hover:bg-sage-800 hover:text-white transition-colors"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setOpenCampaignMenuId(openCampaignMenuId === item.id ? null : item.id);
+                                    setOpenCampaignMenuId(
+                                      openCampaignMenuId === item.id
+                                        ? null
+                                        : item.id,
+                                    );
                                   }}
                                 >
                                   <MoreVertical size={16} />
@@ -502,13 +535,24 @@ const AdminDashboard = () => {
                                 {openCampaignMenuId === item.id && (
                                   <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-sage-800/10 overflow-hidden z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <button
-                                      onClick={() => handleUpdateCampaign(item.id, item.status)}
+                                      onClick={() =>
+                                        handleUpdateCampaign(
+                                          item.id,
+                                          item.status,
+                                        )
+                                      }
                                       className="w-full text-left px-4 py-3 text-sm font-bold text-sage-900 hover:bg-sage-50 transition-colors flex items-center gap-2"
                                     >
-                                      {item.status === 'ACTIVE' ? (
-                                        <><span className="w-2 h-2 rounded-full bg-earth-500"></span> Pause Campaign</>
+                                      {item.status === "ACTIVE" ? (
+                                        <>
+                                          <span className="w-2 h-2 rounded-full bg-earth-500"></span>{" "}
+                                          Pause Campaign
+                                        </>
                                       ) : (
-                                        <><span className="w-2 h-2 rounded-full bg-teal-500"></span> Reactivate Campaign</>
+                                        <>
+                                          <span className="w-2 h-2 rounded-full bg-teal-500"></span>{" "}
+                                          Reactivate Campaign
+                                        </>
                                       )}
                                     </button>
                                     {/* We can add cancel here as well if the backend supports CANCELLED */}
@@ -524,7 +568,7 @@ const AdminDashboard = () => {
               </div>
             )}
 
-            {activeTab === 'kyc' && adminData.pendingKyc.length > 0 && (
+            {activeTab === "kyc" && adminData.pendingKyc.length > 0 && (
               <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
                 <div className="flex items-center justify-between">
                   <div>
@@ -542,19 +586,33 @@ const AdminDashboard = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {adminData.pendingKyc.map((org) => (
-                    <div key={org._id} className="bg-white/60 backdrop-blur-xl border-l-[6px] border-l-coral p-6 rounded-[32px] shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
+                    <div
+                      key={org._id}
+                      className="bg-white/60 backdrop-blur-xl border-l-[6px] border-l-coral p-6 rounded-[32px] shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4"
+                    >
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-bold text-sage-900">{org.name}</h3>
-                          <p className="text-xs text-earth-900/60">{org.email}</p>
+                          <h3 className="font-bold text-sage-900">
+                            {org.name}
+                          </h3>
+                          <p className="text-xs text-earth-900/60">
+                            {org.email}
+                          </p>
                         </div>
                       </div>
                       <div className="bg-sage-50 rounded-2xl border border-sage-200 p-4 overflow-hidden">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-sage-800">Submitted Documents</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-sage-800">
+                          Submitted Documents
+                        </span>
                         <ul className="mt-2 space-y-1">
                           {(org.kycDocuments || []).map((doc, idx) => (
                             <li key={idx}>
-                              <a href={doc} target="_blank" rel="noreferrer" className="text-blue-500 text-xs hover:underline flex items-center gap-1 break-all">
+                              <a
+                                href={doc}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-blue-500 text-xs hover:underline flex items-center gap-1 break-all"
+                              >
                                 <ExternalLink size={12} /> {doc}
                               </a>
                             </li>
@@ -562,45 +620,86 @@ const AdminDashboard = () => {
                         </ul>
                       </div>
                       <div className="flex gap-2 mt-2">
-                        <Button onClick={async () => {
-                          try {
-                            const res = await fetch(`${API_BASE}/api/users/kyc/${org._id}/status`, {
-                              method: 'PUT',
-                              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
-                              body: JSON.stringify({ status: 'approved' })
-                            });
-                            if (!res.ok) throw new Error("Failed to approve");
-                            toast.success("Organization verified!");
-                            setAdminData(prev => ({ ...prev, pendingKyc: prev.pendingKyc.filter(k => k._id !== org._id) }));
-                          } catch (err) { toast.error(err.message); }
-                        }} className="flex-1 rounded-full bg-sage-800 hover:bg-sage-900 text-white font-bold">Approve</Button>
-                        <Button onClick={async () => {
-                          try {
-                            const res = await fetch(`${API_BASE}/api/users/kyc/${org._id}/status`, {
-                              method: 'PUT',
-                              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
-                              body: JSON.stringify({ status: 'rejected' })
-                            });
-                            if (!res.ok) throw new Error("Failed to reject");
-                            toast.success("Application rejected.");
-                            setAdminData(prev => ({ ...prev, pendingKyc: prev.pendingKyc.filter(k => k._id !== org._id) }));
-                          } catch (err) { toast.error(err.message); }
-                        }} variant="outline" className="flex-1 rounded-full text-coral border-coral border hover:bg-coral/10 font-bold">Reject</Button>
+                        <Button
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(
+                                `${API_BASE}/api/users/kyc/${org._id}/status`,
+                                {
+                                  method: "PUT",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                                  },
+                                  body: JSON.stringify({ status: "approved" }),
+                                },
+                              );
+                              if (!res.ok) throw new Error("Failed to approve");
+                              toast.success("Organization verified!");
+                              setAdminData((prev) => ({
+                                ...prev,
+                                pendingKyc: prev.pendingKyc.filter(
+                                  (k) => k._id !== org._id,
+                                ),
+                              }));
+                            } catch (err) {
+                              toast.error(err.message);
+                            }
+                          }}
+                          className="flex-1 rounded-full bg-sage-800 hover:bg-sage-900 text-white font-bold"
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(
+                                `${API_BASE}/api/users/kyc/${org._id}/status`,
+                                {
+                                  method: "PUT",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                                  },
+                                  body: JSON.stringify({ status: "rejected" }),
+                                },
+                              );
+                              if (!res.ok) throw new Error("Failed to reject");
+                              toast.success("Application rejected.");
+                              setAdminData((prev) => ({
+                                ...prev,
+                                pendingKyc: prev.pendingKyc.filter(
+                                  (k) => k._id !== org._id,
+                                ),
+                              }));
+                            } catch (err) {
+                              toast.error(err.message);
+                            }
+                          }}
+                          variant="outline"
+                          className="flex-1 rounded-full text-coral border-coral border hover:bg-coral/10 font-bold"
+                        >
+                          Reject
+                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
               </section>
             )}
-            {activeTab === 'kyc' && adminData.pendingKyc.length === 0 && (
+            {activeTab === "kyc" && adminData.pendingKyc.length === 0 && (
               <div className="flex flex-col items-center justify-center p-16 bg-white/40 backdrop-blur-xl rounded-[40px] border border-white text-center">
                 <ShieldCheck size={48} className="text-sage-800/20 mb-4" />
-                <h3 className="text-xl font-fraunces text-sage-900">No Pending Verifications</h3>
-                <p className="text-earth-900/60 font-light mt-2">All organization KYC requests have been processed.</p>
+                <h3 className="text-xl font-fraunces text-sage-900">
+                  No Pending Verifications
+                </h3>
+                <p className="text-earth-900/60 font-light mt-2">
+                  All organization KYC requests have been processed.
+                </p>
               </div>
             )}
 
-            {activeTab === 'users' && (
+            {activeTab === "users" && (
               <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
                 <div className="flex items-center justify-between">
                   <div>
@@ -671,7 +770,12 @@ const AdminDashboard = () => {
                             <div>
                               <p className="font-bold text-sage-900 text-sm flex items-center gap-1.5">
                                 {userItem.name}
-                                {userItem.isVerified && <CheckCircle2 className="text-sage-600" size={14} />}
+                                {userItem.isVerified && (
+                                  <CheckCircle2
+                                    className="text-sage-600"
+                                    size={14}
+                                  />
+                                )}
                               </p>
                               <p className="text-[11px] text-earth-900/60 font-light">
                                 {userItem.email}
@@ -701,7 +805,11 @@ const AdminDashboard = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setOpenUserMenuId(openUserMenuId === userItem._id ? null : userItem._id);
+                                setOpenUserMenuId(
+                                  openUserMenuId === userItem._id
+                                    ? null
+                                    : userItem._id,
+                                );
                               }}
                               className="p-2 hover:bg-sage-100 rounded-full transition-colors text-sage-800"
                             >
@@ -711,18 +819,38 @@ const AdminDashboard = () => {
                             {openUserMenuId === userItem._id && (
                               <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-sage-800/10 overflow-hidden z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
                                 <button
-                                  onClick={() => handleUpdateUser(userItem._id, 'role', userItem.role)}
+                                  onClick={() =>
+                                    handleUpdateUser(
+                                      userItem._id,
+                                      "role",
+                                      userItem.role,
+                                    )
+                                  }
                                   className="w-full text-left px-4 py-3 text-sm font-bold text-sage-900 hover:bg-sage-50 transition-colors flex items-center gap-2"
                                 >
-                                  <span className="material-symbols-outlined text-[18px]">verified_user</span>
-                                  {userItem.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
+                                  <span className="material-symbols-outlined text-[18px]">
+                                    verified_user
+                                  </span>
+                                  {userItem.role === "admin"
+                                    ? "Remove Admin"
+                                    : "Make Admin"}
                                 </button>
                                 <button
-                                  onClick={() => handleUpdateUser(userItem._id, 'status', userItem.status || 'active')}
+                                  onClick={() =>
+                                    handleUpdateUser(
+                                      userItem._id,
+                                      "status",
+                                      userItem.status || "active",
+                                    )
+                                  }
                                   className="w-full text-left px-4 py-3 text-sm font-bold text-sage-900 hover:bg-coral/10 hover:text-coral transition-colors flex items-center gap-2"
                                 >
-                                  <span className="material-symbols-outlined text-[18px]">block</span>
-                                  {userItem.status === 'suspended' ? 'Reactivate User' : 'Suspend User'}
+                                  <span className="material-symbols-outlined text-[18px]">
+                                    block
+                                  </span>
+                                  {userItem.status === "suspended"
+                                    ? "Reactivate User"
+                                    : "Suspend User"}
                                 </button>
                               </div>
                             )}
