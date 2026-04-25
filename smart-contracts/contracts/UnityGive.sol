@@ -1,6 +1,36 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.34;
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+// Minimal ECDSA utilities (adapted for Remix / local compile convenience)
+library ECDSA {
+    function recover(bytes32 hash, bytes memory signature) internal pure returns (address) {
+        if (signature.length != 65) return address(0);
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            v := byte(0, mload(add(signature, 0x60)))
+        }
+        if (v < 27) v += 27;
+        if (v != 27 && v != 28) return address(0);
+        // solhint-disable-next-line no-inline-assembly
+        address signer;
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, 0x1900) // not used but keeps alignment
+        }
+        // ecrecover
+        signer = ecrecover(hash, v, r, s);
+        return signer;
+    }
+
+    function toEthSignedMessageHash(bytes32 hash) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
+    }
+}
 
 /**
  * @title UnityGive (Multi-Sig & Milestone DAO)
@@ -23,6 +53,7 @@ contract UnityGive is ReentrancyGuard {
     }
     struct Campaign {
         string mongoId;
+        address payable orgWallet;
         uint256 totalGoalAmount;
         uint256 currentAmount; // Total ETH donated
         uint256 requiredVotes; // Multi-Sig threshold (e.g. 3 out of 5)
@@ -34,9 +65,14 @@ contract UnityGive is ReentrancyGuard {
     // STATE VARIABLES
     // ─────────────────────────────────────────────
     address public admin;
-    address payable public treasuryWallet;
     uint256 public campaignCount;
     mapping(uint256 => Campaign) public campaigns;
+    // top 5 donors per campaign (highest contributors)
+    mapping(uint256 => address[5]) public topDonors;
+    // fee recipient (platform fees forwarded here)
+    address payable public immutable feeRecipient = payable(0x2F9DD632494D91Fe3e8772cA331A3c067BA06aEF);
+    // fee in basis points (parts per 10,000). Default 50 = 0.5%
+    uint16 public feeBps = 50;
   
     // campaignId -> milestone array
     mapping(uint256 => Milestone[]) public campaignMilestones;
@@ -57,7 +93,7 @@ contract UnityGive is ReentrancyGuard {
     event ProofUploaded(uint256 indexed campaignId, uint256 milestoneIndex, string ipfsCID);
     event Voted(uint256 indexed campaignId, uint256 milestoneIndex, address indexed voter);
     event MilestoneApproved(uint256 indexed campaignId, uint256 milestoneIndex);
-    event FundsReleased(uint256 indexed campaignId, uint256 milestoneIndex, address indexed treasury, uint256 amount);
+    event FundsReleased(uint256 indexed campaignId, uint256 milestoneIndex, address indexed orgWallet, uint256 amount);
     event CampaignCancelled(uint256 indexed campaignId);
     event RefundIssued(uint256 indexed campaignId, address indexed donor, uint256 amount);
     // ─────────────────────────────────────────────
@@ -71,7 +107,10 @@ contract UnityGive is ReentrancyGuard {
         require(isCouncilMember[campaignId][msg.sender], "Not a council member for this campaign");
         _;
     }
-
+    modifier onlyOrganization(uint256 campaignId) {
+        require(msg.sender == campaigns[campaignId].orgWallet, "Only campaign organization");
+        _;
+    }
     modifier campaignExists(uint256 campaignId) {
         require(campaignId < campaignCount, "Campaign does not exist");
         _;
@@ -87,10 +126,8 @@ contract UnityGive is ReentrancyGuard {
     // ─────────────────────────────────────────────
     // CONSTRUCTOR
     // ─────────────────────────────────────────────
-    constructor(address payable _treasuryWallet) {
+    constructor() {
         admin = msg.sender;
-        require(_treasuryWallet != address(0), "Invalid treasury wallet");
-        treasuryWallet = _treasuryWallet;
     }
     // ─────────────────────────────────────────────
     // ADMIN FUNCTIONS
@@ -100,12 +137,14 @@ contract UnityGive is ReentrancyGuard {
      */
     function registerCampaign(
         string memory mongoId,
+        address payable orgWallet,
         uint256 goalAmount,
         address[] memory councilMembers,
         uint256 requiredVotes,
         uint256[] memory milestoneAmounts,
         uint256 deadline
     ) external onlyAdmin returns (uint256) {
+        require(orgWallet != address(0), "Invalid org wallet");
         require(goalAmount > 0, "Goal must be > 0");
         require(councilMembers.length > 0, "Must have council members");
         require(requiredVotes > 0 && requiredVotes <= councilMembers.length, "Invalid vote threshold");
@@ -122,6 +161,7 @@ contract UnityGive is ReentrancyGuard {
       
         campaigns[campaignId] = Campaign({
             mongoId: mongoId,
+            orgWallet: orgWallet,
             totalGoalAmount: goalAmount,
             currentAmount: 0,
             requiredVotes: requiredVotes,
@@ -170,31 +210,44 @@ contract UnityGive is ReentrancyGuard {
         require(msg.value > 0, "Must send > 0 ETH");
 
         Campaign storage c = campaigns[campaignId];
+        uint256 toCampaign = msg.value;
         uint256 excess = 0;
 
-        if (c.currentAmount + msg.value > c.totalGoalAmount) {
-            excess = (c.currentAmount + msg.value) - c.totalGoalAmount;
+        if (c.currentAmount + toCampaign > c.totalGoalAmount) {
+            excess = (c.currentAmount + toCampaign) - c.totalGoalAmount;
+            toCampaign = toCampaign - excess;
         }
 
-        // Only add up to the goal
-        uint256 added = msg.value - excess;
-        c.currentAmount += added;
-        donations[campaignId][msg.sender] += added;
-        emit DonationReceived(campaignId, msg.sender, added);
+        // Compute platform fee only on the portion that goes to campaign
+        uint256 fee = (toCampaign * feeBps) / 10000;
+        uint256 added = toCampaign - fee;
 
-        // If excess → send immediately to treasury
+        // Update state with net amount
+        if (added > 0) {
+            c.currentAmount += added;
+            donations[campaignId][msg.sender] += added;
+            emit DonationReceived(campaignId, msg.sender, added);
+
+            // Forward platform fee immediately to feeRecipient (reduces on-chain bookkeeping)
+            if (fee > 0) {
+                (bool fOk, ) = feeRecipient.call{value: fee}("");
+                require(fOk, "Fee transfer failed");
+            }
+
+            // Update top donors list (keeps only 5 entries)
+            _updateTopDonors(campaignId, msg.sender);
+        }
+
+        // Refund any excess back to donor
         if (excess > 0) {
-            (bool success, ) = treasuryWallet.call{value: excess}("");
-            require(success, "Failed to send excess to treasury");
+            (bool rOk, ) = payable(msg.sender).call{value: excess}("");
+            require(rOk, "Refund failed");
         }
 
         // Mark campaign as successful if goal is reached
         if (c.currentAmount >= c.totalGoalAmount && !c.isSuccessful) {
             c.isSuccessful = true;
         }
-
-        // Release any pending approved milestones (in sequential order)
-        _releasePendingMilestones(campaignId);
     }
     function refund(uint256 campaignId)
         external
@@ -227,7 +280,7 @@ contract UnityGive is ReentrancyGuard {
         external
         campaignExists(campaignId)
         campaignIsActive(campaignId)
-        onlyAdmin
+        onlyOrganization(campaignId)
     {
         require(milestoneIndex < campaignMilestones[campaignId].length, "Invalid milestone");
         Milestone storage m = campaignMilestones[campaignId][milestoneIndex];
@@ -243,7 +296,7 @@ contract UnityGive is ReentrancyGuard {
         external
         payable
         campaignExists(campaignId)
-        onlyAdmin
+        onlyOrganization(campaignId)
     {
         Campaign storage c = campaigns[campaignId];
         require(block.timestamp > c.deadline, "Campaign has not expired yet");
@@ -260,12 +313,10 @@ contract UnityGive is ReentrancyGuard {
         emit DonationReceived(campaignId, msg.sender, needed);
 
         if (excess > 0) {
-            (bool success, ) = treasuryWallet.call{value: excess}("");
+            (bool success, ) = c.orgWallet.call{value: excess}("");
             require(success, "Failed to refund excess");
         }
 
-        // Release any pending approved milestones after top-up
-        _releasePendingMilestones(campaignId);
     }
     // ─────────────────────────────────────────────
     // INTERNAL HELPER FUNCTIONS
@@ -274,27 +325,8 @@ contract UnityGive is ReentrancyGuard {
      * @notice Internal function to release pending milestones that have been approved but lacked funds
      * @dev Called after donate() and topUpCampaign() to auto-release funds to pending milestones in sequential order
      */
-    function _releasePendingMilestones(uint256 campaignId) private {
-        Campaign storage c = campaigns[campaignId];
-       
-        for (uint i = 0; i < campaignMilestones[campaignId].length; i++) {
-            Milestone storage m = campaignMilestones[campaignId][i];
-           
-            // Only release if approved, not funded, and we have enough balance
-            if (m.isApproved && !m.isFunded && c.currentAmount >= m.amount) {
-                m.isFunded = true;
-                c.currentAmount -= m.amount;
-               
-                (bool success, ) = treasuryWallet.call{value: m.amount}("");
-                require(success, "ETH transfer to Treasury failed");
-               
-                emit FundsReleased(campaignId, i, treasuryWallet, m.amount);
-            } 
-            // Stop at the first unapproved milestone to maintain milestone order
-            else if (!m.isApproved) {
-                break;
-            }
-        }
+    function _releasePendingMilestones() private pure {
+    return;
     }
     // ─────────────────────────────────────────────
     // MULTI-SIG COUNCIL FUNCTIONS
@@ -321,21 +353,106 @@ contract UnityGive is ReentrancyGuard {
         m.approvalCount += 1;
         emit Voted(campaignId, milestoneIndex, msg.sender);
 
-        // If threshold reached, release funds
-        Campaign storage c = campaigns[campaignId];
-        if (m.approvalCount >= c.requiredVotes) {
+        // If threshold reached, mark approved (final release still requires top-5 donor signatures)
+        if (m.approvalCount >= campaigns[campaignId].requiredVotes) {
             m.isApproved = true;
             emit MilestoneApproved(campaignId, milestoneIndex);
-            
-            // Execute funding transfer if contract has enough balance
-            if (c.currentAmount >= m.amount) {
-                m.isFunded = true;
-                c.currentAmount -= m.amount;
-              
-                (bool success, ) = treasuryWallet.call{value: m.amount}("");
-                require(success, "ETH transfer to Treasury failed");
-                emit FundsReleased(campaignId, milestoneIndex, treasuryWallet, m.amount);
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // TOP DONORS & SIGNATURE-BASED RELEASE
+    // ─────────────────────────────────────────────
+    function _updateTopDonors(uint256 campaignId, address donor) private {
+        address[5] storage arr = topDonors[campaignId];
+        uint256 donorAmt = donations[campaignId][donor];
+
+        // If already present, remove it (we will reinsert in order)
+        int256 existing = -1;
+        for (uint i = 0; i < 5; i++) {
+            if (arr[i] == donor) { existing = int256(i); break; }
+        }
+        if (existing >= 0) {
+            uint idx = uint(existing);
+            for (uint j = idx; j < 4; j++) {
+                arr[j] = arr[j+1];
             }
+            arr[4] = address(0);
+        }
+
+        // Insert donor into correct position (simple insertion sort into 5-slot array)
+        for (uint i = 0; i < 5; i++) {
+            // empty slot -> insert here
+            if (arr[i] == address(0)) {
+                arr[i] = donor;
+                return;
+            }
+            uint256 compAmt = donations[campaignId][arr[i]];
+            if (donorAmt > compAmt) {
+                // shift right
+                for (uint j = 4; j > i; j--) {
+                    arr[j] = arr[j-1];
+                }
+                arr[i] = donor;
+                return;
+            }
+        }
+    }
+
+    /**
+     * @notice Release milestone funds if all top-5 donors signed the release message
+     * @param campaignId campaign id
+     * @param milestoneIndex milestone index to release
+     * @param signatures array of 65-byte signatures from top-5 donors (order-insensitive)
+     */
+    function releaseMilestoneWithSignatures(uint256 campaignId, uint256 milestoneIndex, bytes[] calldata signatures)
+        external
+        nonReentrant
+        campaignExists(campaignId)
+        campaignIsActive(campaignId)
+    {
+        require(milestoneIndex < campaignMilestones[campaignId].length, "Invalid milestone");
+        require(signatures.length == 5, "Require 5 signatures");
+
+        Milestone storage m = campaignMilestones[campaignId][milestoneIndex];
+        require(!m.isFunded, "Already funded");
+        require(bytes(m.ipfsEvidence).length > 0, "Proof of Impact not uploaded");
+
+        // Ensure top 5 donors exist
+        address[5] storage top = topDonors[campaignId];
+        require(top[4] != address(0), "Top-5 donors not set yet");
+
+        bytes32 hash = keccak256(abi.encodePacked(address(this), campaignId, milestoneIndex, m.amount));
+        bytes32 ethHash = ECDSA.toEthSignedMessageHash(hash);
+
+        // Verify signatures correspond to the set of top donors (unique, all present)
+        // Use local memory map via temporary boolean array; since top list is 5, small nested checks are fine.
+        bool[5] memory seen;
+        for (uint i = 0; i < signatures.length; i++) {
+            address signer = ECDSA.recover(ethHash, signatures[i]);
+            require(signer != address(0), "Invalid signature");
+            bool matched = false;
+            for (uint j = 0; j < 5; j++) {
+                if (signer == top[j]) {
+                    require(!seen[j], "Duplicate signature");
+                    seen[j] = true;
+                    matched = true;
+                    break;
+                }
+            }
+            require(matched, "Signer not in top-5 donors");
+        }
+
+        // All signatures verified; mark approved and transfer funds
+        m.isApproved = true;
+        if (campaigns[campaignId].currentAmount >= m.amount) {
+            m.isFunded = true;
+            campaigns[campaignId].currentAmount -= m.amount;
+            (bool success, ) = campaigns[campaignId].orgWallet.call{value: m.amount}("");
+            require(success, "ETH transfer to organization failed");
+            emit FundsReleased(campaignId, milestoneIndex, campaigns[campaignId].orgWallet, m.amount);
+        } else {
+            revert("Insufficient campaign balance for milestone");
         }
     }
     // ─────────────────────────────────────────────
