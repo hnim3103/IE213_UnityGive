@@ -27,6 +27,7 @@ import AdminRoute from "./components/AdminRoute";
 import PublicLayout from "./layouts/PublicLayout";
 // (Optional but recommended)
 import AdminLayout from "./layouts/AdminLayout";
+import ProfileSetting from "./pages/ProfileSetting";
 
 function App() {
   return (
@@ -49,6 +50,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfileSetting />
                 </ProtectedRoute>
               }
             />

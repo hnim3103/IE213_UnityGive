@@ -337,7 +337,7 @@ const Dashboard = () => {
 
           <div className="flex gap-4">
             <Button
-              onClick={() => toast.info("Profile settings panel coming soon!")}
+              onClick={() => navigate("/profile")}
               variant="outline"
               className="rounded-full px-8 py-6 border-sage-800/20 text-sage-800 hover:bg-sage-800/5 transition-colors font-bold"
             >

@@ -1,14 +1,15 @@
 import express from "express";
 import {
-    getUserProfile,
-    updateUserProfile,
-    getUserDashboardData,
-    getUserById,
-    getAllUsers,
-    submitKyc,
-    getPendingKyc,
-    updateKycStatus,
-    updateUserRoleStatus
+  getUserProfile,
+  updateUserProfile,
+  changePassword,
+  getUserDashboardData,
+  getUserById,
+  getAllUsers,
+  submitKyc,
+  getPendingKyc,
+  updateKycStatus,
+  updateUserRoleStatus,
 } from "../controllers/userControllers.js";
 import { verifyToken, verifyAdmin } from "../middleware/verifyToken.js";
 
@@ -93,6 +94,45 @@ router.get("/profile/dashboard", verifyToken, getUserDashboardData);
  *         description: Internal server error
  */
 router.put("/profile", verifyToken, updateUserProfile);
+
+/**
+ * @swagger
+ * /api/users/change-password:
+ *   post:
+ *     summary: Change user password
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *               confirmPassword:
+ *                 type: string
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *               - confirmPassword
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized or invalid current password
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/change-password", verifyToken, changePassword);
 
 /**
  * @swagger
