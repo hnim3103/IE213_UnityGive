@@ -124,7 +124,7 @@ const CreateCampaign = () => {
         ...prev,
         councilMembers: updated,
         // Clamp requiredVotes if council shrinks below it
-        requiredVotes: Math.min(prev.requiredVotes, updated.length || 1),
+        requiredVotes: Math.min(prev.requiredVotes, updated.length + 5),
       };
     });
   };
@@ -197,17 +197,13 @@ const CreateCampaign = () => {
     }
 
     // ── Governance validations ────────────────────────────────────────────
-    if (formData.councilMembers.length === 0) {
-      toast.error("You must add at least one council member.");
-      return;
-    }
     const reqVotes = parseInt(formData.requiredVotes, 10);
     if (!reqVotes || reqVotes < 1) {
       toast.error("Required votes must be at least 1.");
       return;
     }
-    if (reqVotes > formData.councilMembers.length) {
-      toast.error(`Required votes (${reqVotes}) cannot exceed the number of council members (${formData.councilMembers.length}).`);
+    if (reqVotes > formData.councilMembers.length + 5) {
+      toast.error(`Required votes (${reqVotes}) cannot exceed the number of council members and top donors (${formData.councilMembers.length + 5}).`);
       return;
     }
 
@@ -563,12 +559,12 @@ const CreateCampaign = () => {
                     type="number"
                     name="requiredVotes"
                     min="1"
-                    max={formData.councilMembers.length || 1}
+                    max={formData.councilMembers.length + 5}
                     value={formData.requiredVotes}
                     onChange={handleInputChange}
                     className="w-32 px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
                   />
-                  <p className="text-[10px] text-earth-900/40 px-2">Number of council members required to approve a milestone funding request.</p>
+                  <p className="text-[10px] text-earth-900/40 px-2">Number of votes required to approve a milestone funding request.<br/><b>Note:</b> The Top 5 Donors are automatically granted voting rights.</p>
                 </div>
               </div>
 

@@ -27,6 +27,8 @@ const CampaignDetails = () => {
   const [proofInputs, setProofInputs] = useState({});
   const [governanceLoading, setGovernanceLoading] = useState({});
   const [hasVotedMap, setHasVotedMap] = useState({});
+  const [isHybridCouncil, setIsHybridCouncil] = useState(false);
+  const [topDonorsList, setTopDonorsList] = useState([]);
 
   const getContract = async (withSigner = false) => {
     if (!window.ethereum) throw new Error('MetaMask not found');
@@ -132,6 +134,14 @@ const CampaignDetails = () => {
     const fetchMilestoneState = async () => {
       try {
         const contract = await getContract();
+        if (walletAddress) {
+          try {
+            const isHybrid = await contract.isHybridCouncilMember(campaign.onChainCampaignId, walletAddress);
+            setIsHybridCouncil(isHybrid);
+          } catch (e) {
+            console.warn("Could not fetch hybrid council status:", e.message);
+          }
+        }
         const count = Number(await contract.getMilestonesCount(campaign.onChainCampaignId));
         const milestones = [];
         const votedMap = {};
@@ -352,7 +362,7 @@ const CampaignDetails = () => {
                   {campaign.milestones?.map((milestone, index) => {
                     const onChain = onChainMilestones[index];
                     const isOrg = walletAddress && campaign.orgWallet?.toLowerCase() === walletAddress;
-                    const isCouncil = walletAddress && campaign.councilMembers?.some(m => m.toLowerCase() === walletAddress);
+                    const isCouncil = isHybridCouncil;
                     const hasProof = onChain?.ipfsEvidence && onChain.ipfsEvidence.length > 0;
                     const alreadyVoted = hasVotedMap[index];
                     const requiredVotes = campaign.requiredVotes || 1;

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.34;
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "hardhat/console.sol";
 
 // Minimal ECDSA utilities (adapted for Remix / local compile convenience)
 library ECDSA {
@@ -60,6 +61,7 @@ contract UnityGive is ReentrancyGuard {
         uint256 deadline; // Unix timestamp - added for time-bound fundraising
         bool isActive;
         bool isSuccessful; // True if goal is reached (by donation or top-up)
+        bool councilLocked; // True if top donors list is frozen
     }
     // ─────────────────────────────────────────────
     // STATE VARIABLES
@@ -103,8 +105,16 @@ contract UnityGive is ReentrancyGuard {
         require(msg.sender == admin, "Only platform admin");
         _;
     }
-    modifier onlyCouncilMember(uint256 campaignId) {
-        require(isCouncilMember[campaignId][msg.sender], "Not a council member for this campaign");
+    function isHybridCouncilMember(uint256 campaignId, address user) public view returns (bool) {
+        if (isCouncilMember[campaignId][user]) return true;
+        for (uint i = 0; i < 5; i++) {
+            if (topDonors[campaignId][i] == user) return true;
+        }
+        return false;
+    }
+
+    modifier onlyHybridCouncil(uint256 campaignId) {
+        require(isHybridCouncilMember(campaignId, msg.sender), "Not a manual council member or top donor");
         _;
     }
     modifier onlyOrganization(uint256 campaignId) {
@@ -146,8 +156,7 @@ contract UnityGive is ReentrancyGuard {
     ) external onlyAdmin returns (uint256) {
         require(orgWallet != address(0), "Invalid org wallet");
         require(goalAmount > 0, "Goal must be > 0");
-        require(councilMembers.length > 0, "Must have council members");
-        require(requiredVotes > 0 && requiredVotes <= councilMembers.length, "Invalid vote threshold");
+        require(requiredVotes > 0 && requiredVotes <= councilMembers.length + 5, "Invalid vote threshold");
         require(milestoneAmounts.length > 0, "Must have at least one milestone");
         require(deadline > block.timestamp, "Deadline must be in the future");
 
@@ -339,7 +348,7 @@ contract UnityGive is ReentrancyGuard {
         nonReentrant
         campaignExists(campaignId)
         campaignIsActive(campaignId)
-        onlyCouncilMember(campaignId)
+        onlyHybridCouncil(campaignId)
     {
         require(milestoneIndex < campaignMilestones[campaignId].length, "Invalid milestone index");
         Milestone storage m = campaignMilestones[campaignId][milestoneIndex];
@@ -353,10 +362,18 @@ contract UnityGive is ReentrancyGuard {
         m.approvalCount += 1;
         emit Voted(campaignId, milestoneIndex, msg.sender);
 
-        // If threshold reached, mark approved (final release still requires top-5 donor signatures)
         if (m.approvalCount >= campaigns[campaignId].requiredVotes) {
             m.isApproved = true;
             emit MilestoneApproved(campaignId, milestoneIndex);
+            
+            // Auto release
+            if (campaigns[campaignId].currentAmount >= m.amount) {
+                m.isFunded = true;
+                campaigns[campaignId].currentAmount -= m.amount;
+                (bool success, ) = campaigns[campaignId].orgWallet.call{value: m.amount}("");
+                require(success, "ETH transfer to organization failed");
+                emit FundsReleased(campaignId, milestoneIndex, campaigns[campaignId].orgWallet, m.amount);
+            }
         }
     }
 
@@ -380,16 +397,14 @@ contract UnityGive is ReentrancyGuard {
             arr[4] = address(0);
         }
 
-        // Insert donor into correct position (simple insertion sort into 5-slot array)
+        // Insert donor into correct position
         for (uint i = 0; i < 5; i++) {
-            // empty slot -> insert here
             if (arr[i] == address(0)) {
                 arr[i] = donor;
                 return;
             }
             uint256 compAmt = donations[campaignId][arr[i]];
             if (donorAmt > compAmt) {
-                // shift right
                 for (uint j = 4; j > i; j--) {
                     arr[j] = arr[j-1];
                 }
@@ -399,62 +414,8 @@ contract UnityGive is ReentrancyGuard {
         }
     }
 
-    /**
-     * @notice Release milestone funds if all top-5 donors signed the release message
-     * @param campaignId campaign id
-     * @param milestoneIndex milestone index to release
-     * @param signatures array of 65-byte signatures from top-5 donors (order-insensitive)
-     */
-    function releaseMilestoneWithSignatures(uint256 campaignId, uint256 milestoneIndex, bytes[] calldata signatures)
-        external
-        nonReentrant
-        campaignExists(campaignId)
-        campaignIsActive(campaignId)
-    {
-        require(milestoneIndex < campaignMilestones[campaignId].length, "Invalid milestone");
-        require(signatures.length == 5, "Require 5 signatures");
 
-        Milestone storage m = campaignMilestones[campaignId][milestoneIndex];
-        require(!m.isFunded, "Already funded");
-        require(bytes(m.ipfsEvidence).length > 0, "Proof of Impact not uploaded");
 
-        // Ensure top 5 donors exist
-        address[5] storage top = topDonors[campaignId];
-        require(top[4] != address(0), "Top-5 donors not set yet");
-
-        bytes32 hash = keccak256(abi.encodePacked(address(this), campaignId, milestoneIndex, m.amount));
-        bytes32 ethHash = ECDSA.toEthSignedMessageHash(hash);
-
-        // Verify signatures correspond to the set of top donors (unique, all present)
-        // Use local memory map via temporary boolean array; since top list is 5, small nested checks are fine.
-        bool[5] memory seen;
-        for (uint i = 0; i < signatures.length; i++) {
-            address signer = ECDSA.recover(ethHash, signatures[i]);
-            require(signer != address(0), "Invalid signature");
-            bool matched = false;
-            for (uint j = 0; j < 5; j++) {
-                if (signer == top[j]) {
-                    require(!seen[j], "Duplicate signature");
-                    seen[j] = true;
-                    matched = true;
-                    break;
-                }
-            }
-            require(matched, "Signer not in top-5 donors");
-        }
-
-        // All signatures verified; mark approved and transfer funds
-        m.isApproved = true;
-        if (campaigns[campaignId].currentAmount >= m.amount) {
-            m.isFunded = true;
-            campaigns[campaignId].currentAmount -= m.amount;
-            (bool success, ) = campaigns[campaignId].orgWallet.call{value: m.amount}("");
-            require(success, "ETH transfer to organization failed");
-            emit FundsReleased(campaignId, milestoneIndex, campaigns[campaignId].orgWallet, m.amount);
-        } else {
-            revert("Insufficient campaign balance for milestone");
-        }
-    }
     // ─────────────────────────────────────────────
     // VIEW FUNCTIONS
     // ─────────────────────────────────────────────
