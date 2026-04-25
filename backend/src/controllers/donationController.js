@@ -32,8 +32,12 @@ export const createDonation = async (req, res) => {
     if (donation.status === "confirmed") {
       const campaign = await Campaign.findById(donation.campaignId);
       if (campaign) {
-        const currentBig = BigInt((campaign.currentAmount || "0").toString().split('.')[0]);
-        const donBig = BigInt((donation.amount || "0").toString().split('.')[0]);
+        const currentBig = BigInt(
+          (campaign.currentAmount || "0").toString().split(".")[0],
+        );
+        const donBig = BigInt(
+          (donation.amount || "0").toString().split(".")[0],
+        );
         const newAmount = (currentBig + donBig).toString();
         campaign.currentAmount = newAmount;
         await campaign.save();
@@ -60,8 +64,12 @@ export const updateDonation = async (req, res) => {
     if (oldDonation.status !== "confirmed" && status === "confirmed") {
       const campaign = await Campaign.findById(updatedDonation.campaignId);
       if (campaign) {
-        const currentBig = BigInt((campaign.currentAmount || "0").toString().split('.')[0]);
-        const donBig = BigInt((updatedDonation.amount || "0").toString().split('.')[0]);
+        const currentBig = BigInt(
+          (campaign.currentAmount || "0").toString().split(".")[0],
+        );
+        const donBig = BigInt(
+          (updatedDonation.amount || "0").toString().split(".")[0],
+        );
         const newAmount = (currentBig + donBig).toString();
         campaign.currentAmount = newAmount;
         await campaign.save();

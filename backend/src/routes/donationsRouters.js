@@ -40,7 +40,7 @@ const router = express.Router();
  *       500:
  *         $ref: '#/components/responses/InternalError'
  */
-router.get("/", verifyAdmin, getAllDonations);
+router.get("/", getAllDonations);
 
 /**
  * @swagger
@@ -71,7 +71,7 @@ router.get("/", verifyAdmin, getAllDonations);
  *       500:
  *         $ref: '#/components/responses/InternalError'
  */
-router.get("/:id", verifyToken, getDonationByID);
+router.get("/:id", getDonationByID);
 
 /**
  * @swagger

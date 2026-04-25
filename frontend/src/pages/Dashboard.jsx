@@ -39,6 +39,10 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [userData, setUserData] = useState({
+    campaigns: [],
+    donations: [],
+  });
   const navigate = useNavigate();
 
   const { data: dashboardData, isLoading: dashboardLoading } = useSWR(
@@ -47,21 +51,57 @@ const Dashboard = () => {
   );
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
+    const loadData = async () => {
       try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Failed to parse user data", error);
-        navigate("/login");
-      }
-    } else {
-      navigate("/login");
-    }
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch (error) {
+            console.error("Failed to parse user data", error);
+            navigate("/login");
+            return;
+          }
+        } else {
+          navigate("/login");
+          return;
+        }
 
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, [navigate]);
+        const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/login");
+          return;
+        }
+
+        const [campaignsRes, donationsRes] = await Promise.all([
+          fetch(`${API_BASE}/api/campaigns`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE}/api/donations`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        const campaignsData = await campaignsRes.json();
+        const donationsData = await donationsRes.json();
+
+        setUserData({
+          campaigns: Array.isArray(campaignsData)
+            ? campaignsData
+            : campaignsData.campaigns || [],
+          donations: Array.isArray(donationsData)
+            ? donationsData
+            : donationsData.donations || [],
+        });
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [navigate, API_BASE]);
 
   const handleConnectWallet = async () => {
     if (!window.ethereum) {
@@ -125,11 +165,41 @@ const Dashboard = () => {
   }
 
   if (!user || !dashboardData) return null;
+  const myDonations = userData.donations.filter((d) => {
+    const currentDonorId =
+      d.donorId?._id || d.donorId?.id || d.donorId || d.userId?._id || d.userId;
+    const currentUserId = user?._id || user?.id;
+
+    const isMatch = String(currentDonorId) === String(currentUserId);
+    return isMatch;
+  });
+
+  const ETH_PRICE_USD = 2500;
+
+  // Calculate stats from data
+  const totalDonated = (
+    myDonations.reduce((sum, d) => {
+      const amount = Number(d.amount || 0);
+      const converted =
+        d.method === "crypto" ? amount / 1e18 : amount / ETH_PRICE_USD;
+      return sum + converted;
+    }, 0) || 0
+  ).toFixed(3);
+
+  const supportedProjectIds = new Set(
+    myDonations.map((d) => {
+      return String(d.campaignId?._id || d.campaignId?.id || d.campaignId);
+    }),
+  );
+
+  const activeCampaigns = userData.campaigns.filter(
+    (c) => c.status === "active" || c.status === "ACTIVE",
+  ).length;
 
   const stats = [
     {
       label: "Total Donated",
-      value: dashboardData.stats.totalImpact,
+      value: `${totalDonated || 0} ETH`,
       icon: Wallet,
       textClass: "text-sage-800",
       bgClass: "bg-sage-100",
@@ -137,7 +207,7 @@ const Dashboard = () => {
     },
     {
       label: "Projects Supported",
-      value: `${dashboardData.stats.projectsSupported} Projects`,
+      value: `${supportedProjectIds.size || 0} Projects`,
       icon: Heart,
       textClass: "text-earth-500",
       bgClass: "bg-earth-100",
@@ -145,7 +215,7 @@ const Dashboard = () => {
     },
     {
       label: "Active Campaigns",
-      value: `${dashboardData.stats.activeCampaigns} Projects`,
+      value: `${activeCampaigns || 0} Projects`,
       icon: Trophy,
       textClass: "text-teal-700",
       bgClass: "bg-teal-50",
@@ -153,12 +223,34 @@ const Dashboard = () => {
     },
   ];
 
-  const myCampaigns = dashboardData.myCampaigns || [];
+  const myCampaignsRaw = dashboardData.myCampaigns || [];
+  const myCampaigns = myCampaignsRaw.map((item) => {
+    const campaignDonations = myDonations.filter(
+      (d) =>
+        String(d.campaignId?._id || d.campaignId?.id || d.campaignId) ===
+        String(item.id || item._id),
+    );
+
+    const totalDonatedToCampaign = campaignDonations.reduce((sum, d) => {
+      const amount = Number(d.amount || 0);
+      const converted =
+        d.method === "crypto" ? amount / 1e18 : amount / ETH_PRICE_USD;
+      return sum + converted;
+    }, 0);
+
+    return {
+      ...item,
+      donated:
+        totalDonatedToCampaign > 0
+          ? `${totalDonatedToCampaign.toFixed(3)} ETH`
+          : "0.000 ETH",
+    };
+  });
+
   const impactFeed = dashboardData.impactFeed || [];
 
   return (
     <div className="selection:bg-sage-800 selection:text-white flex flex-col font-nunito overflow-hidden">
-
       {/* Hero Background Effects */}
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sage-200/20 rounded-full blur-[120px] -z-10 translate-x-1/3 -translate-y-1/3 animate-pulse" />
       <div className="absolute top-1/4 left-0 w-[600px] h-[600px] bg-earth-100/30 rounded-full blur-[100px] -z-10 -translate-x-1/2" />
