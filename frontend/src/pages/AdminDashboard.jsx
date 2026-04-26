@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { ethers } from "ethers";
+import UnityGive from "../lib/UnityGive.json";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Button } from "../components/ui/button";
@@ -136,6 +138,42 @@ const AdminDashboard = () => {
       setOpenCampaignMenuId(null);
     } catch (err) {
       toast.error(err.message);
+    }
+  };
+
+  const handleCancelOnChain = async (mongoId, onChainId) => {
+    if (!window.confirm("Are you sure you want to cancel this campaign on-chain? This will allow donors to refund. This cannot be undone.")) return;
+    try {
+      if (!window.ethereum) throw new Error("MetaMask not found");
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send('eth_requestAccounts', []);
+      const signer = await provider.getSigner();
+      const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
+      if (!contractAddress) throw new Error("Contract address not configured.");
+      
+      const contract = new ethers.Contract(contractAddress, UnityGive.abi, signer);
+      
+      const tx = await contract.cancelCampaign(onChainId);
+      toast.info("Cancelling campaign… waiting for confirmation");
+      await tx.wait();
+      toast.success("Campaign cancelled on-chain");
+      
+      // Update DB to CANCELLED
+      const token = localStorage.getItem("token");
+      await fetch(`${API_BASE}/api/campaigns/${mongoId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ status: "CANCELLED" }),
+      });
+      
+      setAdminData(prev => ({
+        ...prev,
+        campaigns: prev.campaigns.map(c => c._id === mongoId ? { ...c, status: "CANCELLED" } : c)
+      }));
+      setOpenCampaignMenuId(null);
+    } catch (e) {
+      console.error(e);
+      toast.error(e.code === 4001 ? "Transaction rejected" : e.reason || e.message);
     }
   };
 
@@ -280,6 +318,7 @@ const AdminDashboard = () => {
       progress,
       currentMilestone: campaign.currentMilestone || "Fundraising",
       priority: campaign.priority || "MEDIUM",
+      onChainCampaignId: campaign.onChainCampaignId,
     };
   });
 
@@ -555,7 +594,15 @@ const AdminDashboard = () => {
                                         </>
                                       )}
                                     </button>
-                                    {/* We can add cancel here as well if the backend supports CANCELLED */}
+                                    
+                                    {item.status === "ACTIVE" && item.onChainCampaignId !== undefined && (
+                                      <button
+                                        onClick={() => handleCancelOnChain(item.id, item.onChainCampaignId)}
+                                        className="w-full text-left px-4 py-3 text-sm font-bold text-rose-600 hover:bg-rose-50 transition-colors flex items-center gap-2"
+                                      >
+                                        <span className="w-2 h-2 rounded-full bg-rose-600"></span> Cancel On-Chain
+                                      </button>
+                                    )}
                                   </div>
                                 )}
                               </div>

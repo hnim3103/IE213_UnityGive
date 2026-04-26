@@ -27,6 +27,8 @@ const CampaignDetails = () => {
   const [proofInputs, setProofInputs] = useState({});
   const [governanceLoading, setGovernanceLoading] = useState({});
   const [hasVotedMap, setHasVotedMap] = useState({});
+  const [isHybridCouncil, setIsHybridCouncil] = useState(false);
+  const [topDonorsList, setTopDonorsList] = useState([]);
 
   const getContract = async (withSigner = false) => {
     if (!window.ethereum) throw new Error('MetaMask not found');
@@ -118,8 +120,10 @@ const CampaignDetails = () => {
         toast.error('Transaction rejected in MetaMask.');
       } else if (error.message?.includes('network') || error.message?.includes('chain')) {
         toast.error('Wrong network. Please switch to the correct network in MetaMask.');
+      } else if (error.code === 'INSUFFICIENT_FUNDS' || error.message?.includes('insufficient funds')) {
+        toast.error("Transaction failed: Please ensure your wallet is properly connected and has enough ETH.");
       } else {
-        toast.error(error.reason || error.message || 'Donation failed');
+        toast.error(error.reason || 'Donation failed due to a wallet or network error.');
       }
     } finally {
       setIsDonating(false);
@@ -132,6 +136,14 @@ const CampaignDetails = () => {
     const fetchMilestoneState = async () => {
       try {
         const contract = await getContract();
+        if (walletAddress) {
+          try {
+            const isHybrid = await contract.isHybridCouncilMember(campaign.onChainCampaignId, walletAddress);
+            setIsHybridCouncil(isHybrid);
+          } catch (e) {
+            console.warn("Could not fetch hybrid council status:", e.message);
+          }
+        }
         const count = Number(await contract.getMilestonesCount(campaign.onChainCampaignId));
         const milestones = [];
         const votedMap = {};
@@ -160,16 +172,42 @@ const CampaignDetails = () => {
   }, [campaign?.onChainCampaignId, walletAddress]);
 
   const handleUploadProof = async (milestoneIndex) => {
-    const cid = proofInputs[milestoneIndex]?.trim();
-    if (!cid) { toast.error('Please enter an IPFS CID'); return; }
+    const file = proofInputs[milestoneIndex];
+    if (!file) { toast.error('Please provide a file or CID'); return; }
     try {
       setGovernanceLoading(p => ({ ...p, [`proof_${milestoneIndex}`]: true }));
+      
+      let cid = "";
+      if (typeof file === 'string') {
+          cid = file.trim();
+      } else {
+          toast.info('Uploading file to IPFS (Pinata)…');
+          const formData = new FormData();
+          formData.append('file', file);
+          
+          const apiKey = import.meta.env.VITE_PINATA_API_KEY;
+          const secretKey = import.meta.env.VITE_PINATA_SECRET_API_KEY;
+          
+          if (!apiKey || !secretKey) {
+             throw new Error("Pinata API keys not configured in .env");
+          }
+          
+          const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
+            headers: {
+              'Content-Type': `multipart/form-data;`,
+              pinata_api_key: apiKey,
+              pinata_secret_api_key: secretKey
+            }
+          });
+          cid = res.data.IpfsHash;
+      }
+
       const contract = await getContract(true);
       const tx = await contract.uploadProofOfImpact(campaign.onChainCampaignId, milestoneIndex, cid);
-      toast.info('Uploading proof… waiting for confirmation');
+      toast.info('Recording CID on-chain… waiting for confirmation');
       await tx.wait();
-      toast.success('Proof of Impact uploaded on-chain!');
-      setProofInputs(p => ({ ...p, [milestoneIndex]: '' }));
+      toast.success('Proof of Impact recorded successfully!');
+      setProofInputs(p => ({ ...p, [milestoneIndex]: null }));
       // Refresh milestone state
       const m = await contract.getMilestone(campaign.onChainCampaignId, milestoneIndex);
       setOnChainMilestones(prev => prev.map((item, i) => i === milestoneIndex
@@ -352,7 +390,7 @@ const CampaignDetails = () => {
                   {campaign.milestones?.map((milestone, index) => {
                     const onChain = onChainMilestones[index];
                     const isOrg = walletAddress && campaign.orgWallet?.toLowerCase() === walletAddress;
-                    const isCouncil = walletAddress && campaign.councilMembers?.some(m => m.toLowerCase() === walletAddress);
+                    const isCouncil = isHybridCouncil;
                     const hasProof = onChain?.ipfsEvidence && onChain.ipfsEvidence.length > 0;
                     const alreadyVoted = hasVotedMap[index];
                     const requiredVotes = campaign.requiredVotes || 1;
@@ -444,11 +482,9 @@ const CampaignDetails = () => {
                             {isOrg && !onChain.isApproved && (
                               <div className="flex gap-2">
                                 <input
-                                  type="text"
-                                  placeholder="Paste IPFS CID (e.g. Qm…)"
-                                  value={proofInputs[index] || ''}
-                                  onChange={e => setProofInputs(p => ({ ...p, [index]: e.target.value }))}
-                                  className="flex-1 bg-white/80 border border-sage-800/10 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-sage-800/30"
+                                  type="file"
+                                  onChange={e => setProofInputs(p => ({ ...p, [index]: e.target.files[0] }))}
+                                  className="flex-1 bg-white/80 border border-sage-800/10 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-sage-800/30 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sage-50 file:text-sage-800 hover:file:bg-sage-100"
                                 />
                                 <Button
                                   onClick={() => handleUploadProof(index)}
