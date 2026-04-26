@@ -8,6 +8,7 @@ import authRoute from "./routes/authRouters.js";
 import usersRoute from "./routes/userRouters.js";
 import commentRoute from "./routes/commentRouters.js";
 import { connectDB } from "./config/db.js";
+import { initBlockchainListener } from "./services/blockchainService.js";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
@@ -28,6 +29,9 @@ app.use("/api/users", usersRoute);
 
 if (process.env.NODE_ENV !== "test") {
   connectDB().then(() => {
+    // Initialize Blockchain Event Indexer
+    initBlockchainListener();
+
     app.listen(PORT, () => {
       console.log(`Server running at http://localhost:${PORT}`);
       console.log(`Swagger docs at http://localhost:${PORT}/docs`);

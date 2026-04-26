@@ -312,10 +312,10 @@ const CreateCampaign = () => {
       navigate("/dashboard");
     } catch (error) {
       console.error(error);
-      if (error?.code === 4001 || error?.info?.error?.code === 4001) {
-        toast.error("Transaction rejected in MetaMask. Campaign was not created.");
-      } else if (error?.code === 'INSUFFICIENT_FUNDS') {
-        toast.error("Insufficient ETH in your wallet to pay gas fees.");
+      if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
+        toast.error('Transaction rejected in MetaMask.');
+      } else if (error.code === 'INSUFFICIENT_FUNDS' || error.message?.includes('insufficient funds')) {
+        toast.error("Transaction failed: Please ensure your wallet is properly connected and has enough ETH.");
       } else if (error?.code === 'CALL_EXCEPTION') {
         toast.error(`Contract rejected the transaction: ${error?.reason || 'unknown reason'}.`);
       } else {
@@ -564,7 +564,7 @@ const CreateCampaign = () => {
                     onChange={handleInputChange}
                     className="w-32 px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
                   />
-                  <p className="text-[10px] text-earth-900/40 px-2">Number of votes required to approve a milestone funding request.<br/><b>Note:</b> The Top 5 Donors are automatically granted voting rights.</p>
+                  <p className="text-[10px] text-earth-900/40 px-2">Number of votes required to approve a milestone funding request.<br /><b>Note:</b> The Top 5 Donors are automatically granted voting rights.</p>
                 </div>
               </div>
 

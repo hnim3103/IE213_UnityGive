@@ -176,7 +176,8 @@ contract UnityGive is ReentrancyGuard {
             requiredVotes: requiredVotes,
             deadline: deadline,
             isActive: true,
-            isSuccessful: false
+            isSuccessful: false,
+            councilLocked: false
         });
         // Set council members
         for (uint i = 0; i < councilMembers.length; i++) {
