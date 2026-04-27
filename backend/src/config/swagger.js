@@ -8,6 +8,16 @@ const options = {
       version: '1.0.0',
       description: 'REST API documentation for UnityGive fundraising platform',
     },
+    servers: [
+      {
+        url: 'https://unitygive-api.onrender.com',
+        description: 'Production Server'
+      },
+      {
+        url: 'http://localhost:5000',
+        description: 'Local Development Server'
+      }
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {
