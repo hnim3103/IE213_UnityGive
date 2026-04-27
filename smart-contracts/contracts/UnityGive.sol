@@ -213,6 +213,7 @@ contract UnityGive is ReentrancyGuard {
     function donate(uint256 campaignId)
         external
         payable
+        nonReentrant
         campaignExists(campaignId)
         campaignIsActive(campaignId)
         campaignNotExpired(campaignId)
@@ -305,6 +306,7 @@ contract UnityGive is ReentrancyGuard {
     function topUpCampaign(uint256 campaignId)
         external
         payable
+        nonReentrant
         campaignExists(campaignId)
         onlyOrganization(campaignId)
     {
