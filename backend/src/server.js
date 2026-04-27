@@ -16,8 +16,16 @@ import swaggerSpec from "./config/swagger.js";
 const PORT = process.env.PORT || 5000;
 const app = express();
 
-app.use(cors({ origin: ["http://localhost:3000", "http://localhost:5173"] }));
+const frontendUrl = process.env.FRONTEND_URL || "*";
+app.use(cors({
+  origin: frontendUrl === "*" ? "*" : [frontendUrl, "http://localhost:3000", "http://localhost:5173"]
+}));
 app.use(express.json());
+
+// Add a root route so the Render URL doesn't show "Cannot GET /"
+app.get("/", (req, res) => {
+  res.send("UnityGive API is running and blockchain indexer is active! 🚀");
+});
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
