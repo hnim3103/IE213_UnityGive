@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
-import hnimImg from '../assets/hnim.jpg';
+import founderImg from '../assets/hnim.jpg';
 
 const AboutUs = () => {
   const milestones = [
@@ -51,7 +51,7 @@ const AboutUs = () => {
       name: "Nguyen Hoang Nhut Minh",
       role: "Founder & Web3 Strategist",
       desc: "Leading the shift from traditional giving to decentralized social impact with 15+ minutes in tech.",
-      img: hnimImg
+      img: founderImg
     },
     {
       name: "Nguyen Thi Hoang Yen",
