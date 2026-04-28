@@ -12,7 +12,7 @@ const fetcher = url => axios.get(url).then(res => res.data);
 const Campaigns = () => {
   const { data, error, isLoading: loading } = useSWR(`${API_BASE}/api/campaigns`, fetcher);
   const campaigns = data || [];
-  
+
   const [searchParams, setSearchParams] = useSearchParams();
   const activeCategory = searchParams.get('category') || 'ALL';
   const activeStatus = searchParams.get('status') || 'All';
@@ -60,7 +60,7 @@ const Campaigns = () => {
             Our Initiatives
           </h1>
           <p className="text-earth-900 font-nunito font-extralight text-xl max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700">
-            Transparent, milestone-based projects where every contribution is tracked and verified.
+            Transparent, milestone-based Campaigns where every contribution is tracked and verified.
           </p>
         </div>
       </section>
@@ -81,8 +81,8 @@ const Campaigns = () => {
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
                     className={`px-5 py-2.5 rounded-full text-sm font-nunito font-medium transition-colors whitespace-nowrap shadow-sm ${activeCategory === cat
-                        ? "bg-sage-800 text-white shadow-md shadow-sage-800/20"
-                        : "bg-[#efece4] text-sage-800 hover:bg-[#e6e2d6] border border-transparent"
+                      ? "bg-sage-800 text-white shadow-md shadow-sage-800/20"
+                      : "bg-[#efece4] text-sage-800 hover:bg-[#e6e2d6] border border-transparent"
                       }`}
                   >
                     {cat === 'ALL' ? 'All' : CAMPAIGN_TYPES[cat]}
@@ -102,8 +102,8 @@ const Campaigns = () => {
                     key={status}
                     onClick={() => setActiveStatus(status)}
                     className={`px-5 py-2.5 rounded-full text-sm font-nunito font-medium transition-colors whitespace-nowrap shadow-sm ${activeStatus === status
-                        ? "bg-sage-800 text-white shadow-md shadow-sage-800/20"
-                        : "bg-[#efece4] text-sage-800 hover:bg-[#e6e2d6] border border-transparent"
+                      ? "bg-sage-800 text-white shadow-md shadow-sage-800/20"
+                      : "bg-[#efece4] text-sage-800 hover:bg-[#e6e2d6] border border-transparent"
                       }`}
                   >
                     {status}

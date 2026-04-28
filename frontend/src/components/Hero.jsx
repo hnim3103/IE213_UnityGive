@@ -35,7 +35,7 @@ const Hero = () => {
             </Link>
             <Link to="/campaigns">
               <Button variant="outline" className="border-2 border-sage-200 text-sage-800 hover:bg-sage-100/50 px-10 py-7 rounded-full text-lg transition-all font-nunito">
-                Explore Projects
+                Explore Campaigns
               </Button>
             </Link>
           </div>

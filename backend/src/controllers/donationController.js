@@ -27,22 +27,10 @@ export const getDonationByID = async (req, res) => {
 
 export const createDonation = async (req, res) => {
   try {
-    const donation = new Donation(req.body);
+    const donationData = { ...req.body, status: "pending" };
+    const donation = new Donation(donationData);
     await donation.save();
-    if (donation.status === "confirmed") {
-      const campaign = await Campaign.findById(donation.campaignId);
-      if (campaign) {
-        const currentBig = BigInt(
-          (campaign.currentAmount || "0").toString().split(".")[0],
-        );
-        const donBig = BigInt(
-          (donation.amount || "0").toString().split(".")[0],
-        );
-        const newAmount = (currentBig + donBig).toString();
-        campaign.currentAmount = newAmount;
-        await campaign.save();
-      }
-    }
+
     res.status(201).json(donation);
   } catch (error) {
     console.error("Failed to execute createDonation", error);
@@ -60,21 +48,6 @@ export const updateDonation = async (req, res) => {
     const updatedDonation = await Donation.findByIdAndUpdate(id, req.body, {
       new: true,
     });
-    // If transitioning from unconfirmed to confirmed, add to campaign amount
-    if (oldDonation.status !== "confirmed" && status === "confirmed") {
-      const campaign = await Campaign.findById(updatedDonation.campaignId);
-      if (campaign) {
-        const currentBig = BigInt(
-          (campaign.currentAmount || "0").toString().split(".")[0],
-        );
-        const donBig = BigInt(
-          (updatedDonation.amount || "0").toString().split(".")[0],
-        );
-        const newAmount = (currentBig + donBig).toString();
-        campaign.currentAmount = newAmount;
-        await campaign.save();
-      }
-    }
 
     res.status(200).json(updatedDonation);
   } catch (error) {

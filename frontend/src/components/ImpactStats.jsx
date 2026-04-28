@@ -3,7 +3,7 @@ import React from 'react';
 const ImpactStats = () => {
   const stats = [
     {
-      label: "Campaigns Completed",
+      label: "Projects Completed",
       value: "148",
       color: "text-sage-800"
     },

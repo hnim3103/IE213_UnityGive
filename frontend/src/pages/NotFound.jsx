@@ -31,7 +31,7 @@ const NotFound = () => {
             </Link>
             <Link to="/campaigns">
               <Button variant="outline" className="border-sage-800/20 text-sage-800 hover:bg-sage-100 px-10 py-6 rounded-full font-bold text-lg transition-all">
-                Browse Projects
+                Browse Campaigns
               </Button>
             </Link>
           </div>

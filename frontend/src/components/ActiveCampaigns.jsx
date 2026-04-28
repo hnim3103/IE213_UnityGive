@@ -15,7 +15,7 @@ const ActiveCampaigns = () => {
   const fetchCampaigns = async () => {
     try {
       const response = await api.get('/api/campaigns');
-      
+
       // js-combine-iterations: Filter and set data directly
       const activeData = response.data.filter(item => item.status === 'ACTIVE');
       setCampaignsBuffer(activeData);
@@ -42,13 +42,13 @@ const ActiveCampaigns = () => {
               Our Ongoing Initiatives
             </h2>
             <p className="text-earth-900 font-nunito font-extralight text-lg max-w-xl">
-              Support our various projects and see exactly how your donation makes an impact at every milestone.
+              Support our various Campaigns and see exactly how your donation makes an impact at every milestone.
             </p>
           </div>
 
           <Link to="/campaigns" className="group shrink-0">
             <Button variant="ghost" className="text-earth-500 hover:text-earth-500 hover:bg-earth-500/5 px-0 font-nunito flex items-center gap-2 text-lg font-light transition-all">
-              View all projects
+              View all Campaigns
               <span className="material-symbols-outlined text-[20px] transition-transform group-hover:translate-x-1" aria-hidden="true">arrow_forward</span>
             </Button>
           </Link>

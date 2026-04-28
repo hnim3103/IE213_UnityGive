@@ -69,10 +69,10 @@ const CampaignDetails = () => {
         toast.error("Please enter a valid donation amount in ETH.");
         return;
       }
-      
+
       const onChainId = campaign.onChainCampaignId;
       if (onChainId === undefined || onChainId === null) {
-        toast.error("Campaign is not synced with Blockchain.");
+        toast.error("Project is not synced with Blockchain.");
         return;
       }
 
@@ -89,9 +89,9 @@ const CampaignDetails = () => {
 
       const tx = await contract.donate(onChainId, { value: parsedAmount });
       toast.info("Transaction sent. Waiting for confirmation…");
-      
+
       await tx.wait();
-      
+
       // Sync Web3 transaction with Backend DB
       const token = localStorage.getItem("token");
       await fetch(`${API_BASE}/api/donations`, {
@@ -104,8 +104,7 @@ const CampaignDetails = () => {
           campaignId: campaign._id,
           donorId: user?._id || user?.id,
           amount: parsedAmount.toString(), // Wei string
-          method: "crypto",
-          status: "confirmed",
+          status: "pending",
           txHash: tx.hash
         })
       });
@@ -176,30 +175,30 @@ const CampaignDetails = () => {
     if (!file) { toast.error('Please provide a file or CID'); return; }
     try {
       setGovernanceLoading(p => ({ ...p, [`proof_${milestoneIndex}`]: true }));
-      
+
       let cid = "";
       if (typeof file === 'string') {
-          cid = file.trim();
+        cid = file.trim();
       } else {
-          toast.info('Uploading file to IPFS (Pinata)…');
-          const formData = new FormData();
-          formData.append('file', file);
-          
-          const apiKey = import.meta.env.VITE_PINATA_API_KEY;
-          const secretKey = import.meta.env.VITE_PINATA_SECRET_API_KEY;
-          
-          if (!apiKey || !secretKey) {
-             throw new Error("Pinata API keys not configured in .env");
+        toast.info('Uploading file to IPFS (Pinata)…');
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const apiKey = import.meta.env.VITE_PINATA_API_KEY;
+        const secretKey = import.meta.env.VITE_PINATA_SECRET_API_KEY;
+
+        if (!apiKey || !secretKey) {
+          throw new Error("Pinata API keys not configured in .env");
+        }
+
+        const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
+          headers: {
+            'Content-Type': `multipart/form-data;`,
+            pinata_api_key: apiKey,
+            pinata_secret_api_key: secretKey
           }
-          
-          const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
-            headers: {
-              'Content-Type': `multipart/form-data;`,
-              pinata_api_key: apiKey,
-              pinata_secret_api_key: secretKey
-            }
-          });
-          cid = res.data.IpfsHash;
+        });
+        cid = res.data.IpfsHash;
       }
 
       const contract = await getContract(true);
@@ -271,19 +270,17 @@ const CampaignDetails = () => {
   if (!campaign) {
     return (
       <div className="max-w-7xl mx-auto px-8 py-32 text-center">
-        <h1 className="text-4xl font-fraunces text-sage-800">Campaign not found</h1>
+        <h1 className="text-4xl font-fraunces text-sage-800">Project not found</h1>
         <Link to="/campaigns">
-          <Button className="mt-8 bg-sage-800 text-white rounded-full px-8 hover:bg-sage-900 transition-colors">Back to Projects</Button>
+          <Button className="mt-8 bg-sage-800 text-white rounded-full px-8 hover:bg-sage-900 transition-colors">Back to Campaigns</Button>
         </Link>
       </div>
     );
   }
 
-  // totalGoalAmount is stored as ETH string (e.g. "1.5") from the creation form
-  // currentAmount is accumulated Wei strings from donations (e.g. "500000000000000000")
-  // We display both in ETH for consistency
+
   const targetEth = campaign.totalGoalAmount ? parseFloat(campaign.totalGoalAmount) : 0;
-  
+
   let raisedEth = 0;
   if (campaign.currentAmount && campaign.currentAmount.toString() !== '0') {
     try {
@@ -303,7 +300,7 @@ const CampaignDetails = () => {
   }
 
   const progress = targetEth > 0 ? (raisedEth / targetEth) * 100 : 0;
-  
+
   const formatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 1,
     maximumFractionDigits: 3,
@@ -313,13 +310,13 @@ const CampaignDetails = () => {
     <div className="selection:bg-sage-800 selection:text-white font-nunito">
       <main className="max-w-7xl mx-auto px-8 py-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-          
+
           {/* Left Column: Image and Description */}
           <div className="lg:col-span-8 flex flex-col gap-12">
             <div className="relative overflow-hidden rounded-[48px] shadow-2xl border-8 border-white group">
-              <img 
-                src={campaign.image || "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=1000"} 
-                alt={campaign.title || "Campaign Header Image"} 
+              <img
+                src={campaign.image || "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=1000"}
+                alt={campaign.title || "Project Header Image"}
                 fetchpriority="high"
                 className="w-full aspect-video object-cover"
               />
@@ -334,28 +331,28 @@ const CampaignDetails = () => {
               <h1 className="text-5xl md:text-6xl font-fraunces font-thin text-sage-800 leading-tight">
                 {campaign.title}
               </h1>
-              
+
               <div className="flex items-center gap-6">
-                 <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-sage-200 border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
-                       {campaign.creatorId?.avatar ? (
-                         <img src={campaign.creatorId.avatar} alt="Creator avatar" loading="lazy" className="w-full h-full object-cover" />
-                       ) : (
-                         <span className="text-sage-800 font-bold">{campaign.creatorId?.name?.charAt(0) || 'O'}</span>
-                       )}
-                    </div>
-                    <div className="flex flex-col">
-                       <span className="text-[10px] uppercase tracking-widest text-earth-800/60 font-bold">Organizer</span>
-                       <span className="text-sm font-bold text-sage-800">{campaign.creatorId?.name || 'UnityGive Team'}</span>
-                    </div>
-                 </div>
-                 <Separator orientation="vertical" className="h-10 bg-sage-800/10" />
-                 <div className="flex flex-col">
-                    <span className="text-[10px] uppercase tracking-widest text-earth-800/60 font-bold">Status</span>
-                    <Badge variant="outline" className="text-xs border-sage-800/20 text-sage-800 capitalize">
-                      {campaign.status?.toLowerCase() || 'active'}
-                    </Badge>
-                 </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-sage-200 border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
+                    {campaign.creatorId?.avatar ? (
+                      <img src={campaign.creatorId.avatar} alt="Creator avatar" loading="lazy" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-sage-800 font-bold">{campaign.creatorId?.name?.charAt(0) || 'O'}</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-widest text-earth-800/60 font-bold">Organizer</span>
+                    <span className="text-sm font-bold text-sage-800">{campaign.creatorId?.name || 'UnityGive Team'}</span>
+                  </div>
+                </div>
+                <Separator orientation="vertical" className="h-10 bg-sage-800/10" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-widest text-earth-800/60 font-bold">Status</span>
+                  <Badge variant="outline" className="text-xs border-sage-800/20 text-sage-800 capitalize">
+                    {campaign.status?.toLowerCase() || 'active'}
+                  </Badge>
+                </div>
               </div>
 
               <div className="mt-8 text-lg font-extralight text-earth-900 leading-relaxed whitespace-pre-line">
@@ -377,7 +374,7 @@ const CampaignDetails = () => {
                 {campaign.status !== 'ACTIVE' && walletAddress && (
                   <div className="bg-rose-50 border border-rose-100 rounded-[24px] p-6 flex items-center justify-between gap-4">
                     <div>
-                      <p className="font-bold text-rose-700 text-sm">Campaign ended</p>
+                      <p className="font-bold text-rose-700 text-sm">Project ended</p>
                       <p className="text-xs text-rose-600/70 font-light mt-0.5">If you donated and the goal wasn't reached, you may claim a refund.</p>
                     </div>
                     <Button onClick={handleRefund} className="bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-xs font-bold px-6 py-3 whitespace-nowrap">
@@ -400,11 +397,10 @@ const CampaignDetails = () => {
                         {/* Milestone Header */}
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8">
                           <div className="flex items-center gap-6">
-                            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0 ${
-                              onChain?.isFunded ? 'bg-teal-600 text-white'
+                            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0 ${onChain?.isFunded ? 'bg-teal-600 text-white'
                               : onChain?.isApproved ? 'bg-sage-600 text-white'
-                              : 'bg-sage-100 text-sage-800'
-                            }`}>
+                                : 'bg-sage-100 text-sage-800'
+                              }`}>
                               {onChain?.isFunded ? (
                                 <span className="material-symbols-outlined text-[22px]">check_circle</span>
                               ) : onChain?.isApproved ? (
@@ -422,9 +418,8 @@ const CampaignDetails = () => {
                                 <div className="flex items-center gap-2 mt-1">
                                   <div className="flex gap-1">
                                     {Array.from({ length: requiredVotes }).map((_, vi) => (
-                                      <div key={vi} className={`w-3 h-3 rounded-full ${
-                                        vi < (onChain.approvalCount || 0) ? 'bg-sage-800' : 'bg-sage-200'
-                                      }`} />
+                                      <div key={vi} className={`w-3 h-3 rounded-full ${vi < (onChain.approvalCount || 0) ? 'bg-sage-800' : 'bg-sage-200'
+                                        }`} />
                                     ))}
                                   </div>
                                   <span className="text-[10px] text-earth-900/50 font-bold uppercase tracking-wide">
@@ -501,15 +496,14 @@ const CampaignDetails = () => {
                               <Button
                                 onClick={() => handleVote(index)}
                                 disabled={governanceLoading[`vote_${index}`] || alreadyVoted}
-                                className={`rounded-2xl text-xs font-bold px-6 py-3 self-start ${
-                                  alreadyVoted
-                                    ? 'bg-sage-100 text-sage-800/50 cursor-not-allowed'
-                                    : 'bg-earth-500 hover:bg-earth-600 text-white'
-                                }`}
+                                className={`rounded-2xl text-xs font-bold px-6 py-3 self-start ${alreadyVoted
+                                  ? 'bg-sage-100 text-sage-800/50 cursor-not-allowed'
+                                  : 'bg-earth-500 hover:bg-earth-600 text-white'
+                                  }`}
                               >
                                 {governanceLoading[`vote_${index}`] ? 'Submitting…'
                                   : alreadyVoted ? '✓ Already Voted'
-                                  : 'Vote to Approve'}
+                                    : 'Vote to Approve'}
                               </Button>
                             )}
                           </div>
@@ -540,7 +534,7 @@ const CampaignDetails = () => {
                 </div>
 
                 <div className="h-3 w-full bg-white/50 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-sage-800 rounded-full transition-[width] duration-1000 ease-out"
                     style={{ width: `${Math.min(progress, 100)}%` }}
                   />
@@ -548,9 +542,9 @@ const CampaignDetails = () => {
 
                 <div className="flex flex-col gap-4 mt-4">
                   <div className="relative group">
-                    <input 
-                      type="number" 
-                      placeholder="0.1" 
+                    <input
+                      type="number"
+                      placeholder="0.1"
                       value={donationAmount}
                       onChange={(e) => setDonationAmount(e.target.value)}
                       className="w-full bg-white/60 border border-sage-800/10 rounded-full py-5 px-8 focus:outline-none focus:ring-2 focus:ring-sage-800/20 text-xl font-light text-sage-800 transition-colors"
@@ -567,7 +561,7 @@ const CampaignDetails = () => {
                       {isDonating ? "Processing…" : "Donate Now"}
                     </Button>
                   )}
-                  
+
                   <p className="text-center text-[12px] font-extralight text-earth-900/60 px-4">
                     By donating, you agree to our terms. Funds are held in a transparent smart contract and released only upon verified impact milestones.
                   </p>
@@ -576,20 +570,20 @@ const CampaignDetails = () => {
 
               {/* Trust Indicators */}
               <div className="bg-white/40 backdrop-blur-sm p-8 rounded-[32px] border border-white/50 flex flex-col gap-6">
-                 <div className="flex gap-4">
-                    <span className="material-symbols-outlined text-earth-500">verified_user</span>
-                    <div className="flex flex-col gap-1">
-                       <h5 className="text-sm font-bold text-sage-800">Blockchain Secured</h5>
-                       <p className="text-xs font-extralight text-earth-900/70">Your donation is tracked and protected by Ethereum smart contracts.</p>
-                    </div>
-                 </div>
-                 <div className="flex gap-4">
-                    <span className="material-symbols-outlined text-earth-500">assignment_turned_in</span>
-                    <div className="flex flex-col gap-1">
-                       <h5 className="text-sm font-bold text-sage-800">Milestone Based</h5>
-                       <p className="text-xs font-extralight text-earth-900/70">Funds are released only when our team provides immutable proof of impact.</p>
-                    </div>
-                 </div>
+                <div className="flex gap-4">
+                  <span className="material-symbols-outlined text-earth-500">verified_user</span>
+                  <div className="flex flex-col gap-1">
+                    <h5 className="text-sm font-bold text-sage-800">Blockchain Secured</h5>
+                    <p className="text-xs font-extralight text-earth-900/70">Your donation is tracked and protected by Ethereum smart contracts.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <span className="material-symbols-outlined text-earth-500">assignment_turned_in</span>
+                  <div className="flex flex-col gap-1">
+                    <h5 className="text-sm font-bold text-sage-800">Milestone Based</h5>
+                    <p className="text-xs font-extralight text-earth-900/70">Funds are released only when our team provides immutable proof of impact.</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
