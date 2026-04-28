@@ -386,7 +386,7 @@ const CampaignDetails = () => {
                 <div className="flex flex-col gap-6">
                   {campaign.milestones?.map((milestone, index) => {
                     const onChain = onChainMilestones[index];
-                    const isOrg = walletAddress && (campaign.orgWallet?.toLowerCase() === walletAddress || campaign.creatorId?.walletAddress?.toLowerCase() === walletAddress);
+                    const isOrg = user && user.role === 'admin';
                     const isCouncil = isHybridCouncil;
                     const hasProof = onChain?.ipfsEvidence && onChain.ipfsEvidence.length > 0;
                     const alreadyVoted = hasVotedMap[index];

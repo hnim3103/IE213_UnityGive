@@ -200,10 +200,10 @@ export const getUserDashboardData = async (req, res) => {
         status: c.status || "ACTIVE",
         progress:
           Number(c.totalGoalAmount) > 0
-            ? Math.round(
-              (Number(c.currentAmount || 0) / Number(c.totalGoalAmount)) *
+            ? Math.min(100, Math.round(
+              ((Number(c.currentAmount || 0) / 1e18) / Number(c.totalGoalAmount)) *
               100,
-            )
+            ))
             : 0,
         currentMilestone: c.milestones?.length
           ? c.milestones.find((m) => !m.isApproved)?.title || "Completed"
@@ -234,10 +234,10 @@ export const getUserDashboardData = async (req, res) => {
         status: c.status || "ACTIVE",
         progress:
           Number(c.totalGoalAmount) > 0
-            ? Math.round(
-              (Number(c.currentAmount || 0) / Number(c.totalGoalAmount)) *
+            ? Math.min(100, Math.round(
+              ((Number(c.currentAmount || 0) / 1e18) / Number(c.totalGoalAmount)) *
               100,
-            )
+            ))
             : 0,
         currentMilestone: c.milestones?.length
           ? c.milestones.find((m) => !m.isApproved)?.title || "Completed"

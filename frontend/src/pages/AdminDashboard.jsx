@@ -234,15 +234,11 @@ const AdminDashboard = () => {
 
   if (!user || adminData.campaigns.length === 0) return null;
 
-  // ETH price for conversion
-  const ETH_PRICE_USD = 2500;
-
   // Calculate stats from data
   const totalDonationsETH = (
     adminData.donations.reduce((sum, d) => {
       const amount = Number(d.amount || 0);
-      const converted =
-        d.method === "crypto" ? amount / 1e18 : amount / ETH_PRICE_USD;
+      const converted = amount / 1e18;
       return sum + converted;
     }, 0) || 0
   ).toFixed(3);

@@ -25,7 +25,7 @@ export const initBlockchainListener = async () => {
     // 1. Listen for DonationReceived
     contract.on("DonationReceived", async (campaignId, donor, amount, event) => {
       console.log(`[Event: DonationReceived] Campaign: ${campaignId}, Donor: ${donor}, Amount: ${ethers.formatEther(amount)} ETH`);
-      
+
       try {
         const onChainId = Number(campaignId);
         const campaign = await Campaign.findOne({ onChainCampaignId: onChainId });
@@ -37,7 +37,7 @@ export const initBlockchainListener = async () => {
 
         // Find user by wallet address
         const user = await User.findOne({ walletAddress: { $regex: new RegExp(`^${donor}$`, "i") } });
-        
+
         const txHash = event.log.transactionHash;
         const existingDonation = await Donation.findOne({ txHash });
 
@@ -68,7 +68,7 @@ export const initBlockchainListener = async () => {
           const currentWei = BigInt(campaign.currentAmount || "0");
           const newTotal = currentWei + amountToAdd;
           campaign.currentAmount = newTotal.toString();
-          
+
           if (newTotal >= BigInt(campaign.totalGoalAmount)) {
             campaign.status = "COMPLETED";
           }
@@ -79,10 +79,9 @@ export const initBlockchainListener = async () => {
       }
     });
 
-    // 2. Listen for MilestoneApproved
     contract.on("MilestoneApproved", async (campaignId, milestoneIndex) => {
       console.log(`[Event: MilestoneApproved] Campaign: ${campaignId}, Milestone: ${milestoneIndex}`);
-      
+
       try {
         const onChainId = Number(campaignId);
         const mIdx = Number(milestoneIndex);
@@ -98,10 +97,9 @@ export const initBlockchainListener = async () => {
       }
     });
 
-    // 3. Listen for FundsReleased
     contract.on("FundsReleased", async (campaignId, milestoneIndex, orgWallet, amount) => {
       console.log(`[Event: FundsReleased] Campaign: ${campaignId}, Milestone: ${milestoneIndex}, Org: ${orgWallet}`);
-      
+
       try {
         const onChainId = Number(campaignId);
         const mIdx = Number(milestoneIndex);
@@ -117,36 +115,52 @@ export const initBlockchainListener = async () => {
       }
     });
 
-    // 4. Listen for CampaignRegistered (Fallback Sync)
-    contract.on("CampaignRegistered", async (campaignId, mongoId, goalAmount, requiredVotes) => {
-        console.log(`[Event: CampaignRegistered] On-chain ID: ${campaignId}, Mongo ID: ${mongoId}`);
-        
-        try {
-          const onChainId = Number(campaignId);
-          let campaign;
+    contract.on("ProofUploaded", async (campaignId, milestoneIndex, ipfsCID) => {
+      console.log(`[Event: ProofUploaded] Campaign: ${campaignId}, Milestone: ${milestoneIndex}, CID: ${ipfsCID}`);
 
-          if (mongoId && ethers.isHexString(mongoId, 12)) {
-             campaign = await Campaign.findById(mongoId);
-          }
+      try {
+        const onChainId = Number(campaignId);
+        const mIdx = Number(milestoneIndex);
+        const campaign = await Campaign.findOne({ onChainCampaignId: onChainId });
 
-          if (!campaign) {
-            // Fallback: search by goal and recent draft if mongoId was empty
-            campaign = await Campaign.findOne({ 
-                onChainCampaignId: { $exists: false },
-                totalGoalAmount: goalAmount.toString(),
-                status: "DRAFT" 
-            }).sort({ createdAt: -1 });
-          }
-
-          if (campaign) {
-            campaign.onChainCampaignId = onChainId;
-            campaign.status = "ACTIVE";
-            await campaign.save();
-            console.log(`[BlockchainService] Campaign ${campaign._id} synced with on-chain ID ${onChainId}`);
-          }
-        } catch (err) {
-          console.error("[BlockchainService] Error processing CampaignRegistered:", err);
+        if (campaign && campaign.milestones[mIdx]) {
+          campaign.milestones[mIdx].ipfsEvidence = ipfsCID;
+          await campaign.save();
+          console.log(`[BlockchainService] Milestone ${mIdx} proof synced to DB: ${ipfsCID}`);
         }
+      } catch (err) {
+        console.error("[BlockchainService] Error processing ProofUploaded:", err);
+      }
+    });
+
+    contract.on("CampaignRegistered", async (campaignId, mongoId, goalAmount, requiredVotes) => {
+      console.log(`[Event: CampaignRegistered] On-chain ID: ${campaignId}, Mongo ID: ${mongoId}`);
+
+      try {
+        const onChainId = Number(campaignId);
+        let campaign;
+
+        if (mongoId && ethers.isHexString(mongoId, 12)) {
+          campaign = await Campaign.findById(mongoId);
+        }
+
+        if (!campaign) {
+          campaign = await Campaign.findOne({
+            onChainCampaignId: { $exists: false },
+            totalGoalAmount: goalAmount.toString(),
+            status: "DRAFT"
+          }).sort({ createdAt: -1 });
+        }
+
+        if (campaign) {
+          campaign.onChainCampaignId = onChainId;
+          campaign.status = "ACTIVE";
+          await campaign.save();
+          console.log(`[BlockchainService] Campaign ${campaign._id} synced with on-chain ID ${onChainId}`);
+        }
+      } catch (err) {
+        console.error("[BlockchainService] Error processing CampaignRegistered:", err);
+      }
     });
 
   } catch (err) {
