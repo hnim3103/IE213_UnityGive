@@ -39,40 +39,56 @@ export const initBlockchainListener = async () => {
         const user = await User.findOne({ walletAddress: { $regex: new RegExp(`^${donor}$`, "i") } });
 
         const txHash = event.log.transactionHash;
-        const existingDonation = await Donation.findOne({ txHash });
+        const previousDoc = await Donation.findOneAndUpdate(
+          { txHash },
+          {
+            $setOnInsert: {
+              campaignId: campaign._id,
+              donorId: user ? user._id : null,
+              amount: amount.toString(),
+              txHash,
+            },
+            $set: { status: "confirmed" }
+          },
+          { upsert: true, new: false, setDefaultsOnInsert: true }
+        );
+
+        const wasAlreadyConfirmed = previousDoc?.status === "confirmed";
 
         let amountToAdd = 0n;
-
-        if (existingDonation) {
-          if (existingDonation.status !== "confirmed") {
-            existingDonation.status = "confirmed";
-            await existingDonation.save();
-            amountToAdd = BigInt(amount.toString());
-            console.log(`[BlockchainService] Pending donation confirmed for TX: ${txHash}`);
-          } else {
-            console.log(`[BlockchainService] Donation already confirmed for TX: ${txHash}. Skipping.`);
-          }
-        } else {
-          await Donation.create({
-            campaignId: campaign._id,
-            donorId: user ? user._id : null,
-            amount: amount.toString(),
-            txHash: txHash,
-            status: "confirmed"
-          });
+        if (!wasAlreadyConfirmed) {
           amountToAdd = BigInt(amount.toString());
-          console.log(`[BlockchainService] New donation record created for TX: ${txHash}`);
+          console.log(`[BlockchainService] Donation confirmed for TX: ${txHash}`);
+        } else {
+          console.log(`[BlockchainService] Donation already confirmed for TX: ${txHash}. Skipping amount update.`);
         }
 
         if (amountToAdd > 0n) {
-          const currentWei = BigInt(campaign.currentAmount || "0");
+          let currentWei;
+          const storedStr = (campaign.currentAmount || "0").toString();
+          if (storedStr.includes(".")) {
+            // Legacy ETH float stored by fixAmounts.js → convert to Wei
+            currentWei = ethers.parseEther(storedStr);
+          } else {
+            // Already Wei string (current standard)
+            currentWei = BigInt(storedStr || "0");
+          }
+
           const newTotal = currentWei + amountToAdd;
+          // Always persist as Wei string going forward
           campaign.currentAmount = newTotal.toString();
 
-          if (newTotal >= BigInt(campaign.totalGoalAmount)) {
+          // totalGoalAmount may also be an ETH float (from fixAmounts.js migration)
+          const goalStr = (campaign.totalGoalAmount || "0").toString();
+          const goalWei = goalStr.includes(".")
+            ? ethers.parseEther(goalStr)
+            : BigInt(goalStr || "0");
+
+          if (newTotal >= goalWei) {
             campaign.status = "COMPLETED";
           }
           await campaign.save();
+          console.log(`[BlockchainService] Campaign ${campaign._id} currentAmount updated to ${ethers.formatEther(newTotal)} ETH`);
         }
       } catch (err) {
         console.error("[BlockchainService] Error processing DonationReceived:", err);

@@ -22,15 +22,13 @@ const CampaignCard = ({ campaign = {} }) => {
   let raisedEth = 0;
   if (currentAmount && currentAmount.toString() !== '0') {
     try {
-      const amountStr = currentAmount.toString();
-
-      if (amountStr.includes('.') && amountStr.length < 15) {
-        raisedEth = parseFloat(amountStr);
-      }
-      else {
-        const cleanWei = amountStr.split('.')[0] || '0';
-        const formatEther = ethers.formatEther || ethers.utils.formatEther;
-        raisedEth = parseFloat(formatEther(cleanWei));
+      const cleanStr = currentAmount.toString().split('.')[0] || '0';
+      const numericValue = Number(cleanStr);
+      // >= 1e9 means it's in Wei (0.001 ETH = 1e15 Wei); smaller values are legacy ETH floats
+      if (numericValue >= 1e9) {
+        raisedEth = parseFloat(ethers.formatEther(BigInt(cleanStr)));
+      } else {
+        raisedEth = numericValue;
       }
     } catch (err) {
       console.error(`Error parsing currentAmount for ${_id}. Value received: "${currentAmount}"`, err);
@@ -75,7 +73,7 @@ const CampaignCard = ({ campaign = {} }) => {
             {Math.round(rawProgress)}% Funded
           </span>
           <span className="text-[14px] font-light text-sage-800">
-            {raisedEth.toLocaleString(undefined, { maximumFractionDigits: 3 })} ETH / <span className="opacity-60">{targetEth.toLocaleString(undefined, { maximumFractionDigits: 3 })} ETH</span>
+            {raisedEth.toLocaleString(undefined, { maximumFractionDigits: 4 })} ETH / <span className="opacity-60">{targetEth.toLocaleString(undefined, { maximumFractionDigits: 4 })} ETH</span>
           </span>
         </div>
 

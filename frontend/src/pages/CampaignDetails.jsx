@@ -90,9 +90,9 @@ const CampaignDetails = () => {
       const tx = await contract.donate(onChainId, { value: parsedAmount });
       toast.info("Transaction sent. Waiting for confirmation…");
 
-      await tx.wait();
-
-      // Sync Web3 transaction with Backend DB
+      // ✅ Record as PENDING immediately after getting the txHash.
+      // The blockchain event listener will find this record by txHash and mark it confirmed.
+      // This ensures there is always exactly ONE donation document per transaction.
       const token = localStorage.getItem("token");
       await fetch(`${API_BASE}/api/donations`, {
         method: "POST",
@@ -109,12 +109,16 @@ const CampaignDetails = () => {
         })
       });
 
-      toast.success('Donation successful!');
+      await tx.wait();
+
+      toast.success('Donation successful! The raised amount will update shortly.');
       setDonationAmount('');
-      mutate();
+
+      // ✅ Give the backend event listener ~4s to process DonationReceived
+      // and update campaign.currentAmount before we refetch.
+      setTimeout(() => mutate(), 4000);
     } catch (error) {
       console.error(error);
-      // Distinguish common MetaMask errors
       if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
         toast.error('Transaction rejected in MetaMask.');
       } else if (error.message?.includes('network') || error.message?.includes('chain')) {
@@ -284,14 +288,15 @@ const CampaignDetails = () => {
   let raisedEth = 0;
   if (campaign.currentAmount && campaign.currentAmount.toString() !== '0') {
     try {
-      const amountStr = campaign.currentAmount.toString();
-      // If it already has a dot and is short, it's likely already in ETH
-      if (amountStr.includes('.') && amountStr.length < 15) {
-        raisedEth = parseFloat(amountStr);
+      // Strip any decimal part first (Wei strings should never have decimals)
+      const cleanStr = campaign.currentAmount.toString().split('.')[0] || '0';
+      const numericValue = Number(cleanStr);
+      // If the value is >= 1e9, it must be stored in Wei (even 0.001 ETH = 1e15 Wei)
+      // If it's smaller, it was already converted to ETH (legacy records from fixAmounts.js)
+      if (numericValue >= 1e9) {
+        raisedEth = parseFloat(ethers.formatEther(BigInt(cleanStr)));
       } else {
-        // Otherwise treat as Wei string
-        const cleanWei = amountStr.split('.')[0] || '0';
-        raisedEth = parseFloat(ethers.formatEther(cleanWei));
+        raisedEth = numericValue;
       }
     } catch (err) {
       console.error("Error parsing currentAmount:", err);
@@ -303,7 +308,7 @@ const CampaignDetails = () => {
 
   const formatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 1,
-    maximumFractionDigits: 3,
+    maximumFractionDigits: 4,
   });
 
   return (

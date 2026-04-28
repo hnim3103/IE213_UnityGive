@@ -19,7 +19,11 @@ const donationSchema = new mongoose.Schema({
     required: true
   },
 
-  txHash: String,
+  txHash: {
+    type: String,
+    unique: true,
+    sparse: true  // allows multiple docs with no txHash, but enforces uniqueness when present
+  },
 
   status: {
     type: String,
