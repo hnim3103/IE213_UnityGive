@@ -150,14 +150,14 @@ const AdminDashboard = () => {
       const signer = await provider.getSigner();
       const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
       if (!contractAddress) throw new Error("Contract address not configured.");
-      
+
       const contract = new ethers.Contract(contractAddress, UnityGive.abi, signer);
-      
+
       const tx = await contract.cancelCampaign(onChainId);
       toast.info("Cancelling campaign… waiting for confirmation");
       await tx.wait();
       toast.success("Project cancelled on-chain");
-      
+
       // Update DB to CANCELLED
       const token = localStorage.getItem("token");
       await fetch(`${API_BASE}/api/campaigns/${mongoId}`, {
@@ -165,7 +165,7 @@ const AdminDashboard = () => {
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ status: "CANCELLED" }),
       });
-      
+
       setAdminData(prev => ({
         ...prev,
         campaigns: prev.campaigns.map(c => c._id === mongoId ? { ...c, status: "CANCELLED" } : c)
@@ -237,9 +237,8 @@ const AdminDashboard = () => {
   // Calculate stats from data
   const totalDonationsETH = (
     adminData.donations.reduce((sum, d) => {
-      const amount = Number(d.amount || 0);
-      const converted = amount / 1e18;
-      return sum + converted;
+      try { return sum + parseFloat(ethers.formatEther(d.amount?.toString().split(".")[0] || "0")); }
+      catch { return sum; }
     }, 0) || 0
   ).toFixed(3);
 
@@ -279,16 +278,14 @@ const AdminDashboard = () => {
   ];
 
   const myCampaigns = adminData.campaigns.map((campaign) => {
-    const campaignDonations = adminData.donations.filter(
-      (d) =>
-        d.campaignId === campaign._id || d.campaignId?._id === campaign._id,
-    );
+    const campaignDonations = adminData.donations.filter((d) => {
+      const donationCampaignId = d.campaignId?._id?.toString() || d.campaignId?.toString();
+      return donationCampaignId === campaign._id?.toString();
+    });
     const totalDonated = (
       campaignDonations.reduce((acc, donation) => {
-        const amount = Number(donation.amount || 0);
-        const converted =
-          donation.method === "crypto" ? amount / 1e18 : amount / ETH_PRICE_USD;
-        return acc + converted;
+        try { return acc + parseFloat(ethers.formatEther(donation.amount?.toString().split(".")[0] || "0")); }
+        catch { return acc; }
       }, 0) || 0
     ).toFixed(3);
 
@@ -590,7 +587,7 @@ const AdminDashboard = () => {
                                         </>
                                       )}
                                     </button>
-                                    
+
                                     {item.status === "ACTIVE" && item.onChainCampaignId !== undefined && (
                                       <button
                                         onClick={() => handleCancelOnChain(item.id, item.onChainCampaignId)}
@@ -908,8 +905,6 @@ const AdminDashboard = () => {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 };

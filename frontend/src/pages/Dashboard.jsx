@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { ethers } from "ethers";
 import useSWR from "swr";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -175,12 +176,11 @@ const Dashboard = () => {
   });
 
 
-  // Calculate stats from data
+  // Use ethers.formatEther() to safely convert Wei strings — Number() loses precision on large ints
   const totalDonated = (
     myDonations.reduce((sum, d) => {
-      const amount = Number(d.amount || 0);
-      const converted = amount / 1e18;
-      return sum + converted;
+      try { return sum + parseFloat(ethers.formatEther(d.amount?.toString().split(".")[0] || "0")); }
+      catch { return sum; }
     }, 0) || 0
   ).toFixed(3);
 
@@ -230,9 +230,8 @@ const Dashboard = () => {
     );
 
     const totalDonatedToCampaign = campaignDonations.reduce((sum, d) => {
-      const amount = Number(d.amount || 0);
-      const converted = amount / 1e18;
-      return sum + converted;
+      try { return sum + parseFloat(ethers.formatEther(d.amount?.toString().split(".")[0] || "0")); }
+      catch { return sum; }
     }, 0);
 
     return {
