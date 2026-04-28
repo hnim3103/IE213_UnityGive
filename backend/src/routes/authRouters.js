@@ -12,6 +12,46 @@ const router = express.Router();
  *   description: Authentication management
  */
 
+/**
+ * @swagger
+ * /api/auth/signup:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: john@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: Secret123!
+ *               role:
+ *                 type: string
+ *                 enum: [donor, organization]
+ *                 default: donor
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Internal server error
+ */
 router.post("/signup", async (req, res) => {
     try {
         const validationResult = signupSchema.safeParse(req.body);
@@ -40,6 +80,51 @@ router.post("/signup", async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login user with email and password
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: john@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: Secret123!
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Invalid credentials
+ *       500:
+ *         description: Internal server error
+ */
 router.post("/login", async (req, res) => {
     try {
         const validationResult = loginSchema.safeParse(req.body);
@@ -114,6 +199,39 @@ router.post("/reset-password", async (req, res) => {
  * Web3 Authentication Routes
  */
 
+/**
+ * @swagger
+ * /api/auth/web3/nonce:
+ *   post:
+ *     summary: Request a nonce for Web3 wallet authentication
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - walletAddress
+ *             properties:
+ *               walletAddress:
+ *                 type: string
+ *                 example: "0x1234567890abcdef1234567890abcdef12345678"
+ *     responses:
+ *       200:
+ *         description: Nonce generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 nonce:
+ *                   type: string
+ *       400:
+ *         description: Wallet address required
+ *       500:
+ *         description: Internal server error
+ */
 router.post("/web3/nonce", async (req, res) => {
     try {
         const { walletAddress } = req.body;
@@ -133,6 +251,49 @@ router.post("/web3/nonce", async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/auth/web3/login:
+ *   post:
+ *     summary: Authenticate using a Web3 wallet signature
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - walletAddress
+ *               - signature
+ *             properties:
+ *               walletAddress:
+ *                 type: string
+ *                 example: "0x1234567890abcdef1234567890abcdef12345678"
+ *               signature:
+ *                 type: string
+ *                 example: "0xabcdef1234567890..."
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Wallet address and signature required
+ *       401:
+ *         description: Invalid signature
+ *       500:
+ *         description: Internal server error
+ */
 router.post("/web3/login", async (req, res) => {
     try {
         const { walletAddress, signature } = req.body;

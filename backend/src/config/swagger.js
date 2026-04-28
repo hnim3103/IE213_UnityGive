@@ -138,7 +138,6 @@ const options = {
             method: { type: 'string', enum: ['fiat', 'crypto'] },
             txHash: { type: 'string', example: '0xabc123def456...' },
             status: { type: 'string', enum: ['pending', 'confirmed', 'failed'], default: 'pending' },
-            message: { type: 'string', example: 'Keep up the good work!' },
             createdAt: { type: 'string', format: 'date-time' }
           }
         },
@@ -162,17 +161,7 @@ const options = {
             campaignId: { type: 'string', example: '664f1b2c9a1e2d3f4a5b6c7e' }
           }
         },
-        Comment: {
-          type: 'object',
-          required: ['campaignId', 'userId', 'content'],
-          properties: {
-            _id:        { type: 'string', example: '664f1b2c9a1e2d3f4a5b6c80' },
-            campaignId: { type: 'string', example: '664f1b2c9a1e2d3f4a5b6c7e' },
-            userId:     { type: 'string', example: '664f1b2c9a1e2d3f4a5b6c7f' },
-            content:    { type: 'string', example: 'Great campaign, keep it up!' },
-            createdAt:  { type: 'string', format: 'date-time' },
-          }
-        },
+
         Error: {
           type: 'object',
           properties: {

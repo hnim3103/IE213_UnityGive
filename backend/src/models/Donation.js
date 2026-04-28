@@ -25,9 +25,7 @@ const donationSchema = new mongoose.Schema({
     type: String,
     enum: ["pending", "confirmed", "failed"],
     default: "pending"
-  },
-
-  message: String
+  }
 
 }, {
   timestamps: { createdAt: true, updatedAt: false }
