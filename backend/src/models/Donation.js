@@ -19,17 +19,6 @@ const donationSchema = new mongoose.Schema({
     required: true
   },
 
-  currency: {
-    type: String,
-    default: "USD"
-  },
-
-  method: {
-    type: String,
-    enum: ["fiat", "crypto"],
-    required: true
-  },
-
   txHash: String,
 
   status: {

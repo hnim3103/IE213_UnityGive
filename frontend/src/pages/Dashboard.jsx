@@ -206,16 +206,16 @@ const Dashboard = () => {
       borderClass: "border-sage-200",
     },
     {
-      label: "Projects Supported",
-      value: `${supportedProjectIds.size || 0} Projects`,
+      label: "Campaigns Supported",
+      value: `${supportedProjectIds.size || 0} Campaigns`,
       icon: Heart,
       textClass: "text-earth-500",
       bgClass: "bg-earth-100",
       borderClass: "border-earth-200",
     },
     {
-      label: "Active Campaigns",
-      value: `${activeCampaigns || 0} Projects`,
+      label: "Active Projects",
+      value: `${activeCampaigns || 0} Campaigns`,
       icon: Trophy,
       textClass: "text-teal-700",
       bgClass: "bg-teal-50",
@@ -347,7 +347,7 @@ const Dashboard = () => {
               onClick={() => navigate("/campaigns")}
               className="bg-sage-800 hover:bg-sage-900 text-white rounded-full px-8 py-6 shadow-xl shadow-sage-800/20 transition-transform hover:-translate-y-1 font-bold"
             >
-              Explore Projects
+              Explore Campaigns
             </Button>
           </div>
         </section>

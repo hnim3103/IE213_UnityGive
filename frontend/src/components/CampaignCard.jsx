@@ -47,7 +47,7 @@ const CampaignCard = ({ campaign = {} }) => {
       <div className="relative h-60 overflow-hidden">
         <img
           src={image || "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=1000"}
-          alt={title || "Campaign image"}
+          alt={title || "Project image"}
           loading="lazy"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
@@ -61,7 +61,7 @@ const CampaignCard = ({ campaign = {} }) => {
       {/* Content Section */}
       <CardHeader className="p-8 pb-3 flex-grow">
         <h3 className="text-2xl font-fraunces font-thin text-sage-800 line-clamp-1 leading-tight group-hover:text-earth-500 transition-colors duration-300" title={title}>
-          {title || "Untitled Campaign"}
+          {title || "Untitled Project"}
         </h3>
         <p className="text-earth-900 font-nunito font-extralight text-sm mt-3 line-clamp-2 leading-relaxed">
           {description || "No description provided."}

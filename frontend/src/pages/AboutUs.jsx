@@ -2,6 +2,9 @@ import React from 'react';
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
 import founderImg from '../assets/hnim.jpg';
+import daoCommunityImg from '../assets/yen.jpg';
+import ctoImg from '../assets/huy2.jpg';
+import cooImg from '../assets/huy1.jpg';
 
 const AboutUs = () => {
   const milestones = [
@@ -29,7 +32,7 @@ const AboutUs = () => {
     {
       title: "DAO Council",
       desc: "A custom council of auditors and top donors who cryptographically vote to approve milestone-based fund releases.",
-      items: ["On-chain Voting", "Milestone Oversight", "Campaign Auditing"],
+      items: ["On-chain Voting", "Milestone Oversight", "Project Auditing"],
       bg: "bg-sage-100"
     },
     {
@@ -57,19 +60,19 @@ const AboutUs = () => {
       name: "Nguyen Thi Hoang Yen",
       role: "Head of DAO Community",
       desc: "Expert in building transparent ecosystems and sustainable CSR governance models.",
-      img: "https://i.pravatar.cc/300?img=32"
+      img: daoCommunityImg
     },
     {
       name: "Bui Duc Huy",
       role: "CTO & Blockchain Lead",
       desc: "Architect of UnityGive's multi-sig logic and former lead at a major cloud platform.",
-      img: "https://i.pravatar.cc/300?img=12"
+      img: ctoImg
     },
     {
       name: "Nguyen Huu Huy",
       role: "COO & Governance Lead",
       desc: "Ensuring regulatory compliance and strict milestone-based auditing for every project.",
-      img: "https://i.pravatar.cc/300?img=44"
+      img: cooImg
     }
   ];
 
@@ -149,7 +152,7 @@ const AboutUs = () => {
             </p>
             <Link to="/campaigns">
               <Button className="bg-sage-800 hover:bg-sage-900 text-white px-10 py-7 rounded-full text-lg shadow-xl shadow-sage-800/20 transition-all">
-                View On-Chain Projects
+                View On-Chain Campaigns
               </Button>
             </Link>
           </div>

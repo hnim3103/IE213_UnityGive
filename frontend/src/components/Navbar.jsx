@@ -51,7 +51,7 @@ const Navbar = () => {
 
   const navLinks = [
     { id: "homepage", label: "Home", path: "/" },
-    { id: "campaigns", label: "Projects", path: "/campaigns" },
+    { id: "campaigns", label: "Campaigns", path: "/campaigns" },
     { id: "about", label: "About Us", path: "/about" },
     { id: "faq", label: "FAQ", path: "/faq" },
   ];
@@ -75,11 +75,10 @@ const Navbar = () => {
               <li key={item.id}>
                 <Link
                   to={item.path}
-                  className={`text-[15px] transition-colors duration-200 relative pb-1 ${
-                    isActive(item.path)
+                  className={`text-[15px] transition-colors duration-200 relative pb-1 ${isActive(item.path)
                       ? "text-sage-800 font-bold border-b-2 border-earth-500"
                       : "text-sage-800/70 hover:text-sage-800"
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </Link>
@@ -194,11 +193,10 @@ const Navbar = () => {
                 <Link
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`text-lg block ${
-                    isActive(item.path)
+                  className={`text-lg block ${isActive(item.path)
                       ? "text-sage-800 font-bold"
                       : "text-sage-800/70"
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </Link>

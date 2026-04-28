@@ -156,7 +156,7 @@ const AdminDashboard = () => {
       const tx = await contract.cancelCampaign(onChainId);
       toast.info("Cancelling campaign… waiting for confirmation");
       await tx.wait();
-      toast.success("Campaign cancelled on-chain");
+      toast.success("Project cancelled on-chain");
       
       // Update DB to CANCELLED
       const token = localStorage.getItem("token");
@@ -249,7 +249,7 @@ const AdminDashboard = () => {
 
   const adminStats = [
     {
-      label: "Total Campaigns",
+      label: "Total Projects",
       value: adminData.campaigns.length,
       icon: BarChart3,
       textClass: "text-sage-800",

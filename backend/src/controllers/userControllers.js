@@ -163,7 +163,7 @@ export const getUserDashboardData = async (req, res) => {
       BigInt(0),
     );
 
-    // 2. Get unique projects supported
+    // 2. Get unique Campaigns supported
     const supportedCampaignIds = [
       ...new Set(userDonations.map((d) => d.campaignId.toString())),
     ];
@@ -201,9 +201,9 @@ export const getUserDashboardData = async (req, res) => {
         progress:
           Number(c.totalGoalAmount) > 0
             ? Math.round(
-                (Number(c.currentAmount || 0) / Number(c.totalGoalAmount)) *
-                  100,
-              )
+              (Number(c.currentAmount || 0) / Number(c.totalGoalAmount)) *
+              100,
+            )
             : 0,
         currentMilestone: c.milestones?.length
           ? c.milestones.find((m) => !m.isApproved)?.title || "Completed"
@@ -235,9 +235,9 @@ export const getUserDashboardData = async (req, res) => {
         progress:
           Number(c.totalGoalAmount) > 0
             ? Math.round(
-                (Number(c.currentAmount || 0) / Number(c.totalGoalAmount)) *
-                  100,
-              )
+              (Number(c.currentAmount || 0) / Number(c.totalGoalAmount)) *
+              100,
+            )
             : 0,
         currentMilestone: c.milestones?.length
           ? c.milestones.find((m) => !m.isApproved)?.title || "Completed"
@@ -274,20 +274,20 @@ export const getUserDashboardData = async (req, res) => {
     res.status(200).json({
       stats: {
         totalImpact: (Number(totalDonatedWei) / 1e18).toFixed(3) + " ETH",
-        projectsSupported: supportedCampaignIds.length,
+        CampaignsSupported: supportedCampaignIds.length,
         activeCampaigns: activeCampaignsCount,
       },
       myCampaigns: formattedMyCampaigns,
       impactFeed: impactFeed.length
         ? impactFeed
         : [
-            {
-              id: 1,
-              type: "system",
-              message: "Welcome to UnityGive dashboard!",
-              time: "Just now",
-            },
-          ],
+          {
+            id: 1,
+            type: "system",
+            message: "Welcome to UnityGive dashboard!",
+            time: "Just now",
+          },
+        ],
     });
   } catch (error) {
     console.error("Error fetching dashboard data:", error);

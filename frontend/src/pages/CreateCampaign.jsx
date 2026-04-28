@@ -145,8 +145,8 @@ const CreateCampaign = () => {
     }
 
     // ── Required field checks ─────────────────────────────────────────────
-    if (!formData.title.trim()) { toast.error("Campaign title is required."); return; }
-    if (!formData.description.trim()) { toast.error("Campaign description is required."); return; }
+    if (!formData.title.trim()) { toast.error("Project title is required."); return; }
+    if (!formData.description.trim()) { toast.error("Project description is required."); return; }
     if (!formData.image.trim()) { toast.error("Cover image URL is required."); return; }
     if (!formData.totalGoalAmount) { toast.error("Hard cap (goal amount) is required."); return; }
     if (!formData.softCapAmount) { toast.error("Soft cap amount is required."); return; }
@@ -347,7 +347,7 @@ const CreateCampaign = () => {
             </span>
             <h1 className="text-5xl md:text-6xl font-fraunces text-sage-900 tracking-tight">
               Create a New <br />
-              <span className="italic font-light text-earth-500">Campaign</span>
+              <span className="italic font-light text-earth-500">Project</span>
             </h1>
           </div>
           <div className="hidden md:flex items-center gap-3 bg-white/40 backdrop-blur-md px-6 py-4 rounded-3xl border border-white/60">
@@ -373,7 +373,7 @@ const CreateCampaign = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2 flex flex-col">
-                <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Campaign Title</label>
+                <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Project Title</label>
                 <input
                   type="text"
                   name="title"
@@ -572,7 +572,7 @@ const CreateCampaign = () => {
 
               {/* Milestones */}
               <div className="space-y-6">
-                <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Campaign Milestones</label>
+                <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">Project Milestones</label>
 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                   <div className="md:col-span-7">

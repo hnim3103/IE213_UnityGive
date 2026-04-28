@@ -173,7 +173,7 @@ const EditCampaign = () => {
       );
 
       if (response.ok) {
-        toast.success("Campaign updated successfully!");
+        toast.success("Project updated successfully!");
         navigate("/admin/campaigns");
       } else {
         toast.error("Failed to update campaign");
@@ -224,7 +224,7 @@ const EditCampaign = () => {
             </span>
             <h1 className="text-5xl md:text-6xl font-fraunces text-sage-900 tracking-tight">
               Edit <br />
-              <span className="italic font-light text-earth-500">Campaign</span>
+              <span className="italic font-light text-earth-500">Project</span>
             </h1>
           </div>
         </div>
@@ -244,7 +244,7 @@ const EditCampaign = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2 flex flex-col">
                 <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">
-                  Campaign Title
+                  Project Title
                 </label>
                 <input
                   type="text"
@@ -537,7 +537,7 @@ const EditCampaign = () => {
               className="flex-1 bg-sage-800 hover:bg-sage-900 text-white rounded-2xl py-6 font-bold uppercase tracking-[0.15em] text-xs transition-colors shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <CheckCircle2 size={16} />
-              {isSaving ? "Updating..." : "Update Campaign"}
+              {isSaving ? "Updating..." : "Update Project"}
             </Button>
           </div>
         </form>

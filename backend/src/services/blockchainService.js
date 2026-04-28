@@ -38,36 +38,41 @@ export const initBlockchainListener = async () => {
         // Find user by wallet address
         const user = await User.findOne({ walletAddress: { $regex: new RegExp(`^${donor}$`, "i") } });
         
-        // Update campaign currentAmount
-        // currentAmount in contract is net of fees, event 'amount' is also net in the contract logic:
-        // emit DonationReceived(campaignId, msg.sender, added);
-        // where added = toCampaign - fee
-        
-        // We use string addition for Wei safety
-        const currentWei = BigInt(campaign.currentAmount || "0");
-        const newTotal = currentWei + BigInt(amount.toString());
-        campaign.currentAmount = newTotal.toString();
-        
-        if (newTotal >= BigInt(campaign.totalGoalAmount)) {
-          campaign.status = "COMPLETED";
-        }
-        await campaign.save();
-
-        // Create donation record if it doesn't exist
         const txHash = event.log.transactionHash;
         const existingDonation = await Donation.findOne({ txHash });
 
-        if (!existingDonation) {
+        let amountToAdd = 0n;
+
+        if (existingDonation) {
+          if (existingDonation.status !== "confirmed") {
+            existingDonation.status = "confirmed";
+            await existingDonation.save();
+            amountToAdd = BigInt(amount.toString());
+            console.log(`[BlockchainService] Pending donation confirmed for TX: ${txHash}`);
+          } else {
+            console.log(`[BlockchainService] Donation already confirmed for TX: ${txHash}. Skipping.`);
+          }
+        } else {
           await Donation.create({
             campaignId: campaign._id,
-            donorId: user ? user._id : null, // If user not found, we still track the donation
+            donorId: user ? user._id : null,
             amount: amount.toString(),
-            method: "crypto",
             txHash: txHash,
-            status: "confirmed",
-            currency: "ETH"
+            status: "confirmed"
           });
-          console.log(`[BlockchainService] Donation record created for TX: ${txHash}`);
+          amountToAdd = BigInt(amount.toString());
+          console.log(`[BlockchainService] New donation record created for TX: ${txHash}`);
+        }
+
+        if (amountToAdd > 0n) {
+          const currentWei = BigInt(campaign.currentAmount || "0");
+          const newTotal = currentWei + amountToAdd;
+          campaign.currentAmount = newTotal.toString();
+          
+          if (newTotal >= BigInt(campaign.totalGoalAmount)) {
+            campaign.status = "COMPLETED";
+          }
+          await campaign.save();
         }
       } catch (err) {
         console.error("[BlockchainService] Error processing DonationReceived:", err);
