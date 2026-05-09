@@ -83,30 +83,39 @@ export async function loginService(userData) {
 
 export async function getWeb3Nonce(walletAddress) {
   walletAddress = walletAddress.toLowerCase();
-  let user = await User.findOne({ walletAddress });
   
-  if (!user) {
-    // Check if a user with this email but without wallet exists
-    // (We skip this complex merge logic. Just create a bare user with wallet address)
-    user = new User({
-      walletAddress,
-      name: "Web3 User",
-      role: "donor",
-      nonce: Math.floor(Math.random() * 1000000).toString()
-    });
-    await user.save();
-  } else {
-    // Regenerate nonce just in case
-    user.nonce = Math.floor(Math.random() * 1000000).toString();
-    await user.save();
+  try {
+    let user = await User.findOne({ walletAddress });
+    
+    if (!user) {
+      user = new User({
+        walletAddress,
+        name: "Web3 User",
+        role: "donor",
+        nonce: Math.floor(Math.random() * 1000000).toString()
+      });
+      await user.save();
+    } else {
+      user.nonce = Math.floor(Math.random() * 1000000).toString();
+      await user.save();
+    }
+    return { nonce: user.nonce };
+  } catch (error) {
+    console.error("getWeb3Nonce Database Error:", error);
+    throw { status: 500, message: "Database operation failed." };
   }
-
-  return { nonce: user.nonce };
 }
 
 export async function web3Login(walletAddress, signature) {
   walletAddress = walletAddress.toLowerCase();
-  const user = await User.findOne({ walletAddress });
+  let user;
+  
+  try {
+    user = await User.findOne({ walletAddress });
+  } catch (error) {
+    console.error("web3Login Database Query Error:", error);
+    throw { status: 500, message: "Database query failed." };
+  }
   
   if (!user) {
     throw { status: 404, message: "User not found for this wallet address. Please request a nonce first." };
@@ -130,16 +139,27 @@ export async function web3Login(walletAddress, signature) {
     throw { status: 401, message: "Signature verification failed" };
   }
 
-  // Update nonce to prevent replay attacks
-  user.nonce = Math.floor(Math.random() * 1000000).toString();
-  user.lastLogin = new Date();
-  await user.save();
+  try {
+    // Update nonce to prevent replay attacks
+    user.nonce = Math.floor(Math.random() * 1000000).toString();
+    user.lastLogin = new Date();
+    await user.save();
+  } catch (error) {
+    console.error("web3Login User Update Error:", error);
+    throw { status: 500, message: "Failed to update user session." };
+  }
 
-  const token = generateToken({
-    id: user._id,
-    walletAddress: user.walletAddress,
-    role: user.role,
-  });
+  let token;
+  try {
+    token = generateToken({
+      id: user._id,
+      walletAddress: user.walletAddress,
+      role: user.role,
+    });
+  } catch (error) {
+    console.error("web3Login Token Generation Error:", error);
+    throw { status: 500, message: "Failed to generate authentication token." };
+  }
 
   return {
     token,

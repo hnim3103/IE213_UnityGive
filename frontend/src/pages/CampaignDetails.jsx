@@ -87,14 +87,21 @@ const CampaignDetails = () => {
       const contract = new ethers.Contract(contractAddress, UnityGive.abi, signer);
       const parsedAmount = ethers.parseEther(donationAmount.toString());
 
-      const tx = await contract.donate(onChainId, { value: parsedAmount });
-      toast.info("Transaction sent. Waiting for confirmation…");
+      const toastId = toast.loading("Waiting for wallet confirmation...");
 
-      // ✅ Record as PENDING immediately after getting the txHash.
-      // The blockchain event listener will find this record by txHash and mark it confirmed.
-      // This ensures there is always exactly ONE donation document per transaction.
+      let tx;
+      try {
+        tx = await contract.donate(onChainId, { value: parsedAmount });
+      } catch (err) {
+        toast.dismiss(toastId);
+        throw err;
+      }
+
+      toast.loading("Transaction submitted. Waiting for confirmation...", { id: toastId });
+
+      // Record as PENDING immediately after getting the txHash.
       const token = localStorage.getItem("token");
-      await fetch(`${API_BASE}/api/donations`, {
+      fetch(`${API_BASE}/api/donations`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -107,15 +114,19 @@ const CampaignDetails = () => {
           status: "pending",
           txHash: tx.hash
         })
-      });
+      }).catch(err => console.error("Failed to post pending donation:", err));
 
       await tx.wait();
 
-      toast.success('Donation successful! The raised amount will update shortly.');
+      toast.success('Donation successful!', { id: toastId });
       setDonationAmount('');
 
-      // ✅ Give the backend event listener ~4s to process DonationReceived
-      // and update campaign.currentAmount before we refetch.
+      // Optimistic UI update
+      const currentWei = BigInt(campaign.currentAmount?.toString().split('.')[0] || "0");
+      const newTotalWei = currentWei + parsedAmount;
+      mutate({ ...campaign, currentAmount: newTotalWei.toString() }, false);
+      
+      // Refresh to ensure all data is synced
       setTimeout(() => mutate(), 4000);
     } catch (error) {
       console.error(error);
@@ -205,11 +216,18 @@ const CampaignDetails = () => {
         cid = res.data.IpfsHash;
       }
 
-      const contract = await getContract(true);
-      const tx = await contract.uploadProofOfImpact(campaign.onChainCampaignId, milestoneIndex, cid);
-      toast.info('Recording CID on-chain… waiting for confirmation');
+      const toastId = toast.loading('Waiting for wallet confirmation...');
+      let tx;
+      try {
+        tx = await contract.uploadProofOfImpact(campaign.onChainCampaignId, milestoneIndex, cid);
+      } catch (err) {
+        toast.dismiss(toastId);
+        throw err;
+      }
+      
+      toast.loading('Recording CID on-chain. Waiting for confirmation...', { id: toastId });
       await tx.wait();
-      toast.success('Proof of Impact recorded successfully!');
+      toast.success('Proof of Impact recorded successfully!', { id: toastId });
       setProofInputs(p => ({ ...p, [milestoneIndex]: null }));
       // Refresh milestone state
       const m = await contract.getMilestone(campaign.onChainCampaignId, milestoneIndex);
@@ -225,11 +243,18 @@ const CampaignDetails = () => {
   const handleVote = async (milestoneIndex) => {
     try {
       setGovernanceLoading(p => ({ ...p, [`vote_${milestoneIndex}`]: true }));
-      const contract = await getContract(true);
-      const tx = await contract.voteApproveMilestone(campaign.onChainCampaignId, milestoneIndex);
-      toast.info('Vote submitted… waiting for confirmation');
+      const toastId = toast.loading('Waiting for wallet confirmation...');
+      let tx;
+      try {
+        tx = await contract.voteApproveMilestone(campaign.onChainCampaignId, milestoneIndex);
+      } catch (err) {
+        toast.dismiss(toastId);
+        throw err;
+      }
+      
+      toast.loading('Vote submitted. Waiting for confirmation...', { id: toastId });
       await tx.wait();
-      toast.success('Vote recorded on-chain!');
+      toast.success('Vote recorded on-chain!', { id: toastId });
       // Refresh milestone
       const m = await contract.getMilestone(campaign.onChainCampaignId, milestoneIndex);
       setOnChainMilestones(prev => prev.map((item, i) => i === milestoneIndex
@@ -244,11 +269,18 @@ const CampaignDetails = () => {
 
   const handleRefund = async () => {
     try {
-      const contract = await getContract(true);
-      const tx = await contract.refund(campaign.onChainCampaignId);
-      toast.info('Requesting refund… waiting for confirmation');
+      const toastId = toast.loading('Waiting for wallet confirmation...');
+      let tx;
+      try {
+        tx = await contract.refund(campaign.onChainCampaignId);
+      } catch (err) {
+        toast.dismiss(toastId);
+        throw err;
+      }
+      
+      toast.loading('Requesting refund. Waiting for confirmation...', { id: toastId });
       await tx.wait();
-      toast.success('Refund successful!');
+      toast.success('Refund successful!', { id: toastId });
     } catch (e) {
       toast.error(e.code === 4001 ? 'Rejected in MetaMask' : e.reason || e.message);
     }

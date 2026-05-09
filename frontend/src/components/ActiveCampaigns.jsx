@@ -16,8 +16,11 @@ const ActiveCampaigns = () => {
     try {
       const response = await api.get('/api/campaigns');
 
-      // js-combine-iterations: Filter and set data directly
-      const activeData = response.data.filter(item => item.status === 'ACTIVE');
+      const activeData = response.data.filter(item => {
+        if (item.status !== 'ACTIVE') return false;
+        if (item.endDate && new Date(item.endDate) <= new Date()) return false;
+        return true;
+      });
       setCampaignsBuffer(activeData);
     } catch (error) {
       console.error("Error fetching campaigns:", error);

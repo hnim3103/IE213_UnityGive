@@ -7,6 +7,13 @@ import UnityGiveABI from "../lib/UnityGive.json" with { type: "json" };
 let provider;
 let contract;
 
+/**
+ * Initializes the ethers.js provider and smart contract instance.
+ * Sets up listeners for critical on-chain events (Donation, Milestone, Proofs)
+ * and synchronizes them with the MongoDB database.
+ * 
+ * @returns {Promise<void>}
+ */
 export const initBlockchainListener = async () => {
   const rpcUrl = process.env.RPC_URL;
   const contractAddress = process.env.CONTRACT_ADDRESS;
@@ -46,8 +53,11 @@ export const initBlockchainListener = async () => {
         const txHash = event.log.transactionHash;
 
         // ============================
-        // SAFE INSERT OR UPDATE
+        // SAFE INSERT OR UPDATE (ATOMIC UPSERT)
         // ============================
+        // We use findOneAndUpdate with upsert: true and $setOnInsert to prevent race conditions.
+        // If the frontend already created a 'pending' donation with this txHash, 
+        // we update it to 'confirmed'. If not, we insert a new confirmed record.
         const previousDoc = await Donation.findOneAndUpdate(
           { txHash },
           {
