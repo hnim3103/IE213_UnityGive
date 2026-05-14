@@ -90,6 +90,7 @@ export async function getWeb3Nonce(walletAddress) {
     if (!user) {
       user = new User({
         walletAddress,
+        email: `${walletAddress}@web3.local`,
         name: "Web3 User",
         role: "donor",
         nonce: Math.floor(Math.random() * 1000000).toString()
