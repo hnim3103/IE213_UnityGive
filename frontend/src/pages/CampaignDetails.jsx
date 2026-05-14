@@ -132,6 +132,8 @@ const CampaignDetails = () => {
       console.error(error);
       if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
         toast.error('Transaction rejected in MetaMask.');
+      } else if (error.message && (error.message.includes('timeout') || error.message.includes('timeout exceeded'))) {
+        toast.error('Blockchain network is unresponsive (RPC Timeout). Please try again later.');
       } else if (error.message?.includes('network') || error.message?.includes('chain')) {
         toast.error('Wrong network. Please switch to the correct network in MetaMask.');
       } else if (error.code === 'INSUFFICIENT_FUNDS' || error.message?.includes('insufficient funds')) {
