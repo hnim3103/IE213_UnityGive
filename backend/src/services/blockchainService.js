@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import Campaign from "../models/Campaign.js";
 import Donation from "../models/Donation.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 import UnityGiveABI from "../lib/UnityGive.json" with { type: "json" };
 
 let provider;
@@ -167,13 +168,44 @@ export const initBlockchainListener = async () => {
     // ============================
     contract.on("ProofUploaded", async (campaignId, milestoneIndex, ipfsCID) => {
       try {
-        const campaign = await Campaign.findOne({
-          onChainCampaignId: Number(campaignId)
-        });
+        const onChainId = Number(campaignId);
+        const campaign = await Campaign.findOne({ onChainCampaignId: onChainId });
 
         if (campaign && campaign.milestones[milestoneIndex]) {
           campaign.milestones[milestoneIndex].ipfsEvidence = ipfsCID;
           await campaign.save();
+
+          console.log(`[BlockchainService] Proof uploaded for Campaign ${onChainId}, Milestone ${milestoneIndex}. Notifying Top Donors...`);
+
+          // Fetch top donors from smart contract
+          for (let i = 0; i < 5; i++) {
+            try {
+              const donorAddress = await contract.topDonors(campaignId, i);
+              if (donorAddress && donorAddress !== ethers.ZeroAddress) {
+                // Find user by wallet address
+                const user = await User.findOne({
+                  walletAddress: { $regex: new RegExp(`^${donorAddress}$`, "i") }
+                });
+
+                if (user) {
+                  // Create Notification
+                  await Notification.create({
+                    user: user._id,
+                    message: `Campaign "${campaign.title}" is requesting approval for Milestone ${Number(milestoneIndex) + 1}. Please review the proof of impact and sign.`,
+                    type: "MILESTONE_APPROVAL",
+                    metadata: {
+                      campaignId: campaign._id,
+                      milestoneIndex: Number(milestoneIndex),
+                      onChainCampaignId: onChainId
+                    }
+                  });
+                  console.log(`[BlockchainService] Notified User ${user._id} (${donorAddress})`);
+                }
+              }
+            } catch (err) {
+              console.error(`[BlockchainService] Error fetching top donor at index ${i}:`, err);
+            }
+          }
         }
       } catch (err) {
         console.error("[ProofUploaded Error]", err);
