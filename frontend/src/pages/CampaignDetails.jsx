@@ -634,17 +634,44 @@ const CampaignDetails = () => {
                             return;
                           }
                           try {
+                            // Force MetaMask to ask which account to connect
+                            await window.ethereum.request({
+                              method: 'wallet_requestPermissions',
+                              params: [{ eth_accounts: {} }]
+                            });
+                            
                             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                             if (accounts.length > 0) {
                               const addr = accounts[0].toLowerCase();
+                              
+                              // Check with backend to officially link the wallet
+                              const token = localStorage.getItem('token');
+                              if (!token) throw new Error("No auth token");
+                              
+                              const res = await fetch(`${API_BASE}/api/users/profile`, {
+                                method: 'PUT',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ walletAddress: addr })
+                              });
+                              
+                              const data = await res.json();
+                              
+                              if (!res.ok) {
+                                toast.error(data.message || 'Failed to link wallet to account.');
+                                return;
+                              }
+
                               setWalletAddress(addr);
-                              // Persist to localStorage so it survives page reloads
-                              const updatedUser = { ...user, walletAddress: addr };
-                              setUser(updatedUser);
-                              localStorage.setItem('user', JSON.stringify(updatedUser));
-                              toast.success('Wallet connected successfully!');
+                              // Persist to localStorage only after successful backend sync
+                              setUser(data.user);
+                              localStorage.setItem('user', JSON.stringify(data.user));
+                              toast.success('Wallet connected and linked successfully!');
                             }
                           } catch (err) {
+                            console.error('Wallet connection error:', err);
                             if (err.code === 4001) {
                               toast.error('Connection rejected. Please approve the request in MetaMask.');
                             } else {
