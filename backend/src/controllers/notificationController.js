@@ -7,7 +7,7 @@ import Notification from "../models/Notification.js";
  */
 export const getUserNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ user: req.userId })
+    const notifications = await Notification.find({ user: req.user.id })
       .sort({ createdAt: -1 })
       .populate("metadata.campaignId", "title slug");
 
@@ -31,7 +31,7 @@ export const markAsRead = async (req, res) => {
       return res.status(404).json({ message: "Notification not found" });
     }
 
-    if (notification.user.toString() !== req.userId) {
+    if (notification.user.toString() !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
