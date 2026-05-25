@@ -162,6 +162,39 @@ const options = {
           }
         },
 
+        Notification: {
+          type: 'object',
+          properties: {
+            _id: { type: 'string', example: '664f1b2c9a1e2d3f4a5b6f99' },
+            user: { type: 'string', example: '664f1b2c9a1e2d3f4a5b6a12', description: 'MongoDB ObjectId of the recipient user' },
+            message: { type: 'string', example: 'A top donor has voted to approve Milestone 1 of Clean Water Project.' },
+            type: {
+              type: 'string',
+              enum: ['MILESTONE_APPROVAL', 'SYSTEM'],
+              default: 'MILESTONE_APPROVAL'
+            },
+            isRead: { type: 'boolean', default: false, example: false },
+            metadata: {
+              type: 'object',
+              properties: {
+                campaignId: {
+                  type: 'object',
+                  description: 'Populated campaign reference',
+                  properties: {
+                    _id: { type: 'string', example: '664f1b2c9a1e2d3f4a5b6c7e' },
+                    title: { type: 'string', example: 'Clean Water for Mekong Villages' },
+                    slug: { type: 'string', example: 'clean-water-for-mekong-villages' }
+                  }
+                },
+                milestoneIndex: { type: 'integer', example: 0, description: 'Zero-based index of the milestone' },
+                onChainCampaignId: { type: 'integer', example: 3, description: 'The campaign ID stored on-chain' }
+              }
+            },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' }
+          }
+        },
+
         Error: {
           type: 'object',
           properties: {
