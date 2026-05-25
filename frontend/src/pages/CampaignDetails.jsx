@@ -192,6 +192,7 @@ const CampaignDetails = () => {
     if (!file) { toast.error('Please provide a file or CID'); return; }
     try {
       setGovernanceLoading(p => ({ ...p, [`proof_${milestoneIndex}`]: true }));
+      const contract = await getContract(true);
 
       let cid = "";
       if (typeof file === 'string') {
@@ -245,6 +246,7 @@ const CampaignDetails = () => {
   const handleVote = async (milestoneIndex) => {
     try {
       setGovernanceLoading(p => ({ ...p, [`vote_${milestoneIndex}`]: true }));
+      const contract = await getContract(true);
       const toastId = toast.loading('Waiting for wallet confirmation...');
       let tx;
       try {
@@ -271,6 +273,7 @@ const CampaignDetails = () => {
 
   const handleRefund = async () => {
     try {
+      const contract = await getContract(true);
       const toastId = toast.loading('Waiting for wallet confirmation...');
       let tx;
       try {

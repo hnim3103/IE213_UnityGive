@@ -14,7 +14,7 @@ const NotificationBell = () => {
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        const res = await axios.get(`${API_BASE}/notifications`, {
+        const res = await axios.get(`${API_BASE}/api/notifications`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setNotifications(res.data);
@@ -34,7 +34,7 @@ const NotificationBell = () => {
   const markAsRead = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`${API_BASE}/notifications/${id}/read`, {}, {
+      await axios.put(`${API_BASE}/api/notifications/${id}/read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(notifications.map(n =>
