@@ -46,15 +46,19 @@ const CampaignDetails = () => {
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    if (storedUser) setUser(JSON.parse(storedUser));
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      setUser(parsed);
+      // Only set walletAddress if the user account already has one (Web3 login)
+      if (parsed.walletAddress) {
+        setWalletAddress(parsed.walletAddress.toLowerCase());
+      }
+    }
 
-    // Detect connected wallet
+    // Listen for wallet changes — only update if user already connected
     if (window.ethereum) {
-      window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
-        if (accounts.length > 0) setWalletAddress(accounts[0].toLowerCase());
-      });
       window.ethereum.on('accountsChanged', accounts => {
-        setWalletAddress(accounts[0]?.toLowerCase() || null);
+        setWalletAddress(prev => prev ? (accounts[0]?.toLowerCase() || null) : null);
       });
     }
   }, []);
@@ -125,7 +129,7 @@ const CampaignDetails = () => {
       const currentWei = BigInt(campaign.currentAmount?.toString().split('.')[0] || "0");
       const newTotalWei = currentWei + parsedAmount;
       mutate({ ...campaign, currentAmount: newTotalWei.toString() }, false);
-      
+
       // Refresh to ensure all data is synced
       setTimeout(() => mutate(), 4000);
     } catch (error) {
@@ -227,7 +231,7 @@ const CampaignDetails = () => {
         toast.dismiss(toastId);
         throw err;
       }
-      
+
       toast.loading('Recording CID on-chain. Waiting for confirmation...', { id: toastId });
       await tx.wait();
       toast.success('Proof of Impact recorded successfully!', { id: toastId });
@@ -255,7 +259,7 @@ const CampaignDetails = () => {
         toast.dismiss(toastId);
         throw err;
       }
-      
+
       toast.loading('Vote submitted. Waiting for confirmation...', { id: toastId });
       await tx.wait();
       toast.success('Vote recorded on-chain!', { id: toastId });
@@ -282,7 +286,7 @@ const CampaignDetails = () => {
         toast.dismiss(toastId);
         throw err;
       }
-      
+
       toast.loading('Requesting refund. Waiting for confirmation...', { id: toastId });
       await tx.wait();
       toast.success('Refund successful!', { id: toastId });
@@ -350,7 +354,7 @@ const CampaignDetails = () => {
 
   return (
     <div className="selection:bg-sage-800 selection:text-white font-nunito">
-      
+
       {/* Top Donor Notification Banner */}
       {isHybridCouncil && onChainMilestones.some((m, i) => m.ipfsEvidence && !m.isApproved && !hasVotedMap[i]) && (
         <div className="bg-sage-800 text-white px-8 py-4 sticky top-20 z-40 flex justify-between items-center shadow-lg animate-in slide-in-from-top">
@@ -361,8 +365,8 @@ const CampaignDetails = () => {
               <p className="text-xs font-light text-sage-100">You are a Top Donor. A milestone has pending proof of impact waiting for your review and vote.</p>
             </div>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="border-white text-sage-800 bg-white hover:bg-sage-100 font-bold rounded-full"
             onClick={() => {
               window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
@@ -621,6 +625,42 @@ const CampaignDetails = () => {
                     <Button onClick={() => navigate('/login')} className="w-full bg-sage-800 hover:bg-sage-900 text-white rounded-full py-8 text-xl shadow-lg transition-transform active:scale-[0.98]">
                       Login to Donate
                     </Button>
+                  ) : !walletAddress ? (
+                    <div className="flex flex-col gap-3">
+                      <Button
+                        onClick={async () => {
+                          if (!window.ethereum) {
+                            toast.error('MetaMask is not installed. Please install it from metamask.io');
+                            return;
+                          }
+                          try {
+                            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                            if (accounts.length > 0) {
+                              const addr = accounts[0].toLowerCase();
+                              setWalletAddress(addr);
+                              // Persist to localStorage so it survives page reloads
+                              const updatedUser = { ...user, walletAddress: addr };
+                              setUser(updatedUser);
+                              localStorage.setItem('user', JSON.stringify(updatedUser));
+                              toast.success('Wallet connected successfully!');
+                            }
+                          } catch (err) {
+                            if (err.code === 4001) {
+                              toast.error('Connection rejected. Please approve the request in MetaMask.');
+                            } else {
+                              toast.error('Failed to connect wallet.');
+                            }
+                          }
+                        }}
+                        className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-full py-8 text-xl shadow-lg transition-transform active:scale-[0.98]"
+                      >
+                        <span className="material-symbols-outlined mr-2 text-[22px]">account_balance_wallet</span>
+                        Connect Wallet
+                      </Button>
+                      <p className="text-center text-[12px] font-light text-amber-700/80 bg-amber-50 rounded-2xl px-4 py-3">
+                        Please connect your MetaMask wallet to make a donation. Donations are processed on the Ethereum blockchain.
+                      </p>
+                    </div>
                   ) : (
                     <Button onClick={handleDonate} disabled={isDonating} className="w-full bg-sage-800 hover:bg-sage-900 text-white rounded-full py-8 text-xl shadow-lg transition-transform active:scale-[0.98] disabled:opacity-70">
                       {isDonating ? "Processing…" : "Donate Now"}
