@@ -18,7 +18,7 @@ const StepCard = ({ id, title, description, icon: Icon }) => (
       {title}
     </h3>
     
-    <p className="text-earth-900/70 font-nunito font-light leading-relaxed text-center text-sm md:text-base">
+    <p className="text-earth-900/90 font-nunito font-light leading-relaxed text-center text-sm md:text-base">
       {description}
     </p>
 
@@ -69,7 +69,7 @@ const HowItWorks = () => {
           <h2 id="how-it-works-title" className="text-5xl md:text-6xl font-fraunces text-sage-900 tracking-tight">
             The Sowing <span className="italic font-light">Journey</span>
           </h2>
-          <p className="max-w-2xl mx-auto text-lg text-earth-900/60 font-light">
+          <p className="max-w-2xl mx-auto text-lg text-earth-900/80 font-light">
             Transparency isn't just a feature; it's our foundation. Follow these four simple steps to start making a verified impact.
           </p>
         </div>

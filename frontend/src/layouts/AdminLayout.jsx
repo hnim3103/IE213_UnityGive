@@ -54,7 +54,7 @@ const AdminLayout = () => {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${isActive
                   ? 'bg-sage-800 text-white shadow-lg shadow-sage-800/20'
-                  : 'text-sage-800/70 hover:bg-sage-100 hover:text-sage-800'
+                  : 'text-sage-800/90 hover:bg-sage-100 hover:text-sage-800'
                 }`
               }
             >

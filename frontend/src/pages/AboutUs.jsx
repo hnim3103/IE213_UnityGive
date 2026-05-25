@@ -117,7 +117,7 @@ const AboutUs = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl font-fraunces text-sage-800 mb-4">A Multi-Sig Ecosystem</h2>
-            <p className="text-earth-900/60 font-light max-w-2xl mx-auto">Our platform removes the need for blind faith. Every fund release is a cryptographic agreement between the council and the community.</p>
+            <p className="text-earth-900/80 font-light max-w-2xl mx-auto">Our platform removes the need for blind faith. Every fund release is a cryptographic agreement between the council and the community.</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -127,7 +127,7 @@ const AboutUs = () => {
                 <p className="text-earth-900 font-extralight leading-relaxed">{p.desc}</p>
                 <ul className="mt-auto space-y-3">
                   {p.items.map((item, idx) => (
-                    <li key={idx} className="flex items-center gap-3 text-sm text-earth-900/70 font-medium">
+                    <li key={idx} className="flex items-center gap-3 text-sm text-earth-900/90 font-medium">
                       <span className="w-1.5 h-1.5 rounded-full bg-earth-500" />
                       {item}
                     </li>
@@ -170,7 +170,7 @@ const AboutUs = () => {
                 </div>
                 <div>
                   <h4 className="text-xl font-bold text-sage-800 mb-1">{v.t}</h4>
-                  <p className="text-earth-900/60 font-extralight text-sm leading-relaxed">{v.d}</p>
+                  <p className="text-earth-900/80 font-extralight text-sm leading-relaxed">{v.d}</p>
                 </div>
               </div>
             ))}
@@ -196,7 +196,7 @@ const AboutUs = () => {
                 </div>
                 <h4 className="text-xl font-fraunces italic text-sage-800 text-center">{member.name}</h4>
                 <p className="text-earth-500 font-bold text-[10px] uppercase tracking-[2px] mt-2 mb-4">{member.role}</p>
-                <p className="text-earth-900/60 font-extralight text-xs text-center leading-relaxed max-w-[200px]">
+                <p className="text-earth-900/80 font-extralight text-xs text-center leading-relaxed max-w-[200px]">
                   {member.desc}
                 </p>
               </div>
@@ -211,7 +211,7 @@ const AboutUs = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center border-b border-earth-500/10 pb-24">
             <div>
               <h2 className="text-3xl font-fraunces text-sage-800 mb-6 italic">Powered by Web3 Infrastructure</h2>
-              <p className="text-earth-900/70 font-extralight leading-relaxed">
+              <p className="text-earth-900/90 font-extralight leading-relaxed">
                 UnityGive is built on a foundation of cryptographic trust. We utilize decentralized protocols to ensure your support is delivered exactly where it matters, with no intermediaries.
               </p>
             </div>

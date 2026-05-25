@@ -355,7 +355,7 @@ const AdminDashboard = () => {
                   {user.name.split(" ")[0]}
                 </span>
               </h1>
-              <p className="text-earth-900/60 max-w-md font-light text-lg">
+              <p className="text-earth-900/80 max-w-md font-light text-lg">
                 Monitor all campaigns, users, and donations from your admin
                 dashboard
               </p>
@@ -429,7 +429,7 @@ const AdminDashboard = () => {
                     </Button>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-sage-800/60">
+                    <span className="text-xs font-bold text-sage-800/80">
                       {campaignPage * 3 + 1}-
                       {Math.min((campaignPage + 1) * 3, myCampaigns.length)} of{" "}
                       {myCampaigns.length}
@@ -516,7 +516,7 @@ const AdminDashboard = () => {
                               </h3>
                               <div className="space-y-3 pt-2">
                                 <div className="flex justify-between items-center text-sm">
-                                  <span className="text-earth-900/60 font-light text-sm">
+                                  <span className="text-earth-900/80 font-light text-sm">
                                     Campaign Progress
                                   </span>
                                   <span className="font-bold text-sage-800 bg-sage-100 px-3 py-1 rounded-full text-xs">
@@ -618,7 +618,7 @@ const AdminDashboard = () => {
                         {adminData.pendingKyc.length}
                       </span>
                     </h2>
-                    <p className="text-sm text-earth-900/60 font-light mt-2">
+                    <p className="text-sm text-earth-900/80 font-light mt-2">
                       Review organization documents before granting verification
                     </p>
                   </div>
@@ -635,7 +635,7 @@ const AdminDashboard = () => {
                           <h3 className="font-bold text-sage-900">
                             {org.name}
                           </h3>
-                          <p className="text-xs text-earth-900/60">
+                          <p className="text-xs text-earth-900/80">
                             {org.email}
                           </p>
                         </div>
@@ -733,7 +733,7 @@ const AdminDashboard = () => {
                 <h3 className="text-xl font-fraunces text-sage-900">
                   No Pending Verifications
                 </h3>
-                <p className="text-earth-900/60 font-light mt-2">
+                <p className="text-earth-900/80 font-light mt-2">
                   All organization KYC requests have been processed.
                 </p>
               </div>
@@ -746,7 +746,7 @@ const AdminDashboard = () => {
                     <h2 className="text-3xl font-fraunces text-sage-900">
                       User Management
                     </h2>
-                    <p className="text-sm text-earth-900/60 font-light mt-2">
+                    <p className="text-sm text-earth-900/80 font-light mt-2">
                       Manage permissions and community roles
                     </p>
                   </div>
@@ -817,7 +817,7 @@ const AdminDashboard = () => {
                                   />
                                 )}
                               </p>
-                              <p className="text-[11px] text-earth-900/60 font-light">
+                              <p className="text-[11px] text-earth-900/80 font-light">
                                 {userItem.email}
                               </p>
                             </div>
@@ -834,7 +834,7 @@ const AdminDashboard = () => {
 
                           {/* Activity */}
                           <div className="col-span-3">
-                            <p className="text-[11px] text-earth-900/60 font-light flex items-center gap-1.5">
+                            <p className="text-[11px] text-earth-900/80 font-light flex items-center gap-1.5">
                               <Activity size={12} className="text-earth-500" />
                               Just now
                             </p>

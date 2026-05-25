@@ -334,7 +334,7 @@ const CreateCampaign = () => {
       <main className="flex-grow max-w-5xl mx-auto w-full px-6 py-16">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-sage-800/60 hover:text-sage-800 transition-colors mb-10 font-bold uppercase tracking-widest text-[11px] group"
+          className="flex items-center gap-2 text-sage-800/80 hover:text-sage-800 transition-colors mb-10 font-bold uppercase tracking-widest text-[11px] group"
         >
           <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
           Back to Dashboard
@@ -356,7 +356,7 @@ const CreateCampaign = () => {
             </div>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-sage-900">Security Check</p>
-              <p className="text-xs font-light text-earth-900/60">Verified Admin Session</p>
+              <p className="text-xs font-light text-earth-900/80">Verified Admin Session</p>
             </div>
           </div>
         </div>
@@ -380,7 +380,7 @@ const CreateCampaign = () => {
                   value={formData.title}
                   onChange={handleInputChange}
                   placeholder="e.g. Clean Water for Africa"
-                  className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                   required
                 />
               </div>
@@ -391,7 +391,7 @@ const CreateCampaign = () => {
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
-                  className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors appearance-none"
+                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors appearance-none"
                 >
                   {Object.keys(CAMPAIGN_TYPES).map(key => (
                     <option key={key} value={key}>{CAMPAIGN_TYPES[key]}</option>
@@ -407,7 +407,7 @@ const CreateCampaign = () => {
                   onChange={handleInputChange}
                   rows="4"
                   placeholder="Share the story and impact of this campaign…"
-                  className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-[32px] focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20 resize-none"
+                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-[32px] focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20 resize-none"
                   required
                 ></textarea>
               </div>
@@ -421,7 +421,7 @@ const CreateCampaign = () => {
                     value={formData.image}
                     onChange={handleInputChange}
                     placeholder="https://images.unsplash.com/…"
-                    className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                    className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                     required
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-earth-900/20">
@@ -452,7 +452,7 @@ const CreateCampaign = () => {
                     value={formData.totalGoalAmount}
                     onChange={handleInputChange}
                     placeholder="0.00"
-                    className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                    className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                     required
                   />
                   <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-bold text-earth-900/30">ETH</div>
@@ -469,7 +469,7 @@ const CreateCampaign = () => {
                     value={formData.softCapAmount}
                     onChange={handleInputChange}
                     placeholder="0.00"
-                    className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                    className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                     required
                   />
                   <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-bold text-earth-900/30">ETH</div>
@@ -486,7 +486,7 @@ const CreateCampaign = () => {
                     onChange={handleDateInput}
                     placeholder="DD/MM/YYYY"
                     maxLength={10}
-                    className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                    className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                   />
                   <Calendar size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-earth-900/20 pointer-events-none" />
                 </div>
@@ -502,7 +502,7 @@ const CreateCampaign = () => {
                     onChange={handleDateInput}
                     placeholder="DD/MM/YYYY"
                     maxLength={10}
-                    className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                    className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                   />
                   <Calendar size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-earth-900/20 pointer-events-none" />
                 </div>
@@ -531,7 +531,7 @@ const CreateCampaign = () => {
                       onChange={(e) => setNewCouncilMember(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCouncilMember())}
                       placeholder="0x…"
-                      className="flex-grow px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                      className="flex-grow px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                     />
                     <Button type="button" onClick={addCouncilMember} className="bg-sage-800 hover:bg-sage-900 text-white rounded-2xl px-6 h-auto">
                       <Plus size={18} />
@@ -562,7 +562,7 @@ const CreateCampaign = () => {
                     max={formData.councilMembers.length + 5}
                     value={formData.requiredVotes}
                     onChange={handleInputChange}
-                    className="w-32 px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
+                    className="w-32 px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
                   />
                   <p className="text-[10px] text-earth-900/40 px-2">Number of votes required to approve a milestone funding request.<br /><b>Note:</b> The Top 5 Donors are automatically granted voting rights.</p>
                 </div>
@@ -582,7 +582,7 @@ const CreateCampaign = () => {
                       onChange={(e) => setNewMilestone(prev => ({ ...prev, title: e.target.value }))}
                       onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addMilestone())}
                       placeholder="Milestone title (e.g. Purchase Equipment)"
-                      className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                      className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                     />
                   </div>
                   <div className="md:col-span-3">
@@ -593,7 +593,7 @@ const CreateCampaign = () => {
                       onChange={(e) => setNewMilestone(prev => ({ ...prev, amount: e.target.value }))}
                       onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addMilestone())}
                       placeholder="ETH Amount"
-                      className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                      className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                     />
                   </div>
                   <div className="md:col-span-2">
@@ -633,7 +633,7 @@ const CreateCampaign = () => {
 
           {/* Submit */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-6">
-            <div className="flex items-center gap-4 text-earth-900/60">
+            <div className="flex items-center gap-4 text-earth-900/80">
               <CheckCircle2 size={24} className="text-earth-500" />
               <p className="text-sm font-light max-w-sm">
                 {txStatus === 'chain' && 'Waiting for MetaMask confirmation and blockchain TX...'}

@@ -9,20 +9,20 @@ const Footer = () => {
         {/* Brand Section */}
         <div className="flex flex-col gap-2">
           <span className="text-2xl font-instrument italic text-sage-800">UnityGive</span>
-          <p className="text-[14px] font-extralight text-sage-800/60 tracking-wider">
+          <p className="text-[14px] font-extralight text-sage-800/80 tracking-wider">
             © 2026 UnityGive. Nuturing change through the block.
           </p>
         </div>
 
         {/* Links Section */}
         <nav className="flex flex-wrap justify-center gap-8 md:gap-12">
-          <Link to="/privacy" className="text-[14px] font-extralight text-sage-800/60 hover:text-sage-800 transition-colors">
+          <Link to="/privacy" className="text-[14px] font-extralight text-sage-800/80 hover:text-sage-800 transition-colors">
             Privacy Policy
           </Link>
-          <Link to="/terms" className="text-[14px] font-extralight text-sage-800/60 hover:text-sage-800 transition-colors">
+          <Link to="/terms" className="text-[14px] font-extralight text-sage-800/80 hover:text-sage-800 transition-colors">
             Terms of Service
           </Link>
-          <Link to="/contact" className="text-[14px] font-extralight text-sage-800/60 hover:text-sage-800 transition-colors">
+          <Link to="/contact" className="text-[14px] font-extralight text-sage-800/80 hover:text-sage-800 transition-colors">
             Contact
           </Link>
         </nav>

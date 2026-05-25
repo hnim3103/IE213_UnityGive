@@ -290,7 +290,7 @@ const Dashboard = () => {
               {user.walletAddress ? (
                 <button
                   onClick={() => toast.info("Edit Wallet panel coming soon!")}
-                  className="flex items-center gap-3 text-earth-900/60 bg-white/40 hover:bg-white/60 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/60 w-fit mx-auto md:mx-0 transition-colors group cursor-pointer"
+                  className="flex items-center gap-3 text-earth-900/80 bg-white/40 hover:bg-white/60 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/60 w-fit mx-auto md:mx-0 transition-colors group cursor-pointer"
                 >
                   <Wallet
                     size={16}
@@ -310,7 +310,7 @@ const Dashboard = () => {
                 <button
                   onClick={handleConnectWallet}
                   disabled={isConnecting}
-                  className="flex items-center gap-3 text-earth-900/60 bg-white/40 hover:bg-white/60 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/60 w-fit mx-auto md:mx-0 transition-colors group cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="flex items-center gap-3 text-earth-900/80 bg-white/40 hover:bg-white/60 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/60 w-fit mx-auto md:mx-0 transition-colors group cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isConnecting ? (
                     <RefreshCw
@@ -392,7 +392,7 @@ const Dashboard = () => {
               <Button
                 onClick={() => toast.info("Donation history log coming soon!")}
                 variant="ghost"
-                className="text-sage-800/60 hover:text-sage-800 font-bold uppercase tracking-widest text-[11px] group"
+                className="text-sage-800/80 hover:text-sage-800 font-bold uppercase tracking-widest text-[11px] group"
               >
                 View History{" "}
                 <ChevronRight
@@ -424,7 +424,7 @@ const Dashboard = () => {
                       </h3>
                       <div className="space-y-3 pt-2">
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-earth-900/60 font-light text-sm">
+                          <span className="text-earth-900/80 font-light text-sm">
                             Campaign Growth
                           </span>
                           <span className="font-bold text-sage-800 bg-sage-100 px-3 py-1 rounded-full text-xs">
@@ -458,7 +458,7 @@ const Dashboard = () => {
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-sage-800/10 flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-earth-900/60">
+                    <div className="flex items-center gap-3 text-earth-900/80">
                       <TrendingUp size={16} className="text-earth-500" />
                       <span className="text-sm font-light">
                         Currently in{" "}
@@ -502,7 +502,7 @@ const Dashboard = () => {
                       <h4 className="font-bold text-sage-900 text-sm leading-tight flex items-start gap-2">
                         {event.project}
                       </h4>
-                      <p className="text-xs font-light text-earth-900/70 leading-relaxed font-nunito">
+                      <p className="text-xs font-light text-earth-900/90 leading-relaxed font-nunito">
                         {event.event}
                       </p>
                       <button
@@ -529,7 +529,7 @@ const Dashboard = () => {
                     <span className="text-[11px] font-bold uppercase tracking-widest text-sage-900 block">
                       DAO Verified
                     </span>
-                    <p className="text-xs font-light text-earth-900/70 leading-relaxed">
+                    <p className="text-xs font-light text-earth-900/90 leading-relaxed">
                       All feed events are pulled from on-chain logs.
                     </p>
                   </div>
@@ -559,7 +559,7 @@ const Dashboard = () => {
                   <li key={i}>
                     <button
                       onClick={() => toast.info(`${item.label} coming soon!`)}
-                      className="w-full flex items-center justify-between p-4 rounded-3xl hover:bg-sage-50 text-earth-900/70 hover:text-sage-800 transition-colors border border-transparent hover:border-sage-800/10 group"
+                      className="w-full flex items-center justify-between p-4 rounded-3xl hover:bg-sage-50 text-earth-900/90 hover:text-sage-800 transition-colors border border-transparent hover:border-sage-800/10 group"
                     >
                       <div className="flex items-center gap-4">
                         <div className="bg-sage-800/5 p-2 rounded-2xl text-sage-800 group-hover:scale-110 transition-transform">

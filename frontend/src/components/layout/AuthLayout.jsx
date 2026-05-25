@@ -126,7 +126,7 @@ export const AuthLayout = ({
           {/* Divider */}
           <div className="flex items-center gap-4">
             <Separator className="flex-1 bg-sage-200/30" />
-            <span className="text-[12px] uppercase tracking-[2.4px] text-earth-800/60 whitespace-nowrap">
+            <span className="text-[12px] uppercase tracking-[2.4px] text-earth-800/80 whitespace-nowrap">
               {dividerText}
             </span>
             <Separator className="flex-1 bg-sage-200/30" />

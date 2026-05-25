@@ -94,7 +94,7 @@ const AdminUsers = () => {
           <h1 className="text-4xl font-fraunces text-sage-900 mt-1">
             User <span className="italic font-light text-earth-500">Management</span>
           </h1>
-          <p className="text-earth-900/60 font-light mt-1 text-sm">Manage roles and permissions for all platform users</p>
+          <p className="text-earth-900/80 font-light mt-1 text-sm">Manage roles and permissions for all platform users</p>
         </div>
         <div className="flex items-center gap-2 bg-white/60 backdrop-blur-xl border border-white px-5 py-3 rounded-2xl shadow-sm">
           <Users size={16} className="text-sage-800" />
@@ -208,7 +208,7 @@ const AdminUsers = () => {
 
               {/* Email */}
               <div className="col-span-3">
-                <p className="text-sm text-earth-900/60 font-light truncate">{u.email || "—"}</p>
+                <p className="text-sm text-earth-900/80 font-light truncate">{u.email || "—"}</p>
               </div>
 
               {/* Actions */}

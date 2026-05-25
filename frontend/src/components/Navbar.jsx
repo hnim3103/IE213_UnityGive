@@ -76,9 +76,9 @@ const Navbar = () => {
               <li key={item.id}>
                 <Link
                   to={item.path}
-                  className={`text-[15px] transition-colors duration-200 relative pb-1 ${isActive(item.path)
+                  className={`text-[15px] transition-colors duration-200 relative p-2 ${isActive(item.path)
                       ? "text-sage-800 font-bold border-b-2 border-earth-500"
-                      : "text-sage-800/70 hover:text-sage-800"
+                      : "text-sage-800/90 hover:text-sage-800"
                     }`}
                 >
                   {item.label}
@@ -121,7 +121,7 @@ const Navbar = () => {
                       <p className="text-sm font-bold text-sage-800 truncate">
                         {user.name || "User"}
                       </p>
-                      <p className="text-[11px] text-sage-800/60 truncate">
+                      <p className="text-[11px] text-sage-800/80 truncate">
                         {user.email || ""}
                       </p>
                     </div>
@@ -199,7 +199,7 @@ const Navbar = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`text-lg block ${isActive(item.path)
                       ? "text-sage-800 font-bold"
-                      : "text-sage-800/70"
+                      : "text-sage-800/90"
                     }`}
                 >
                   {item.label}
@@ -227,7 +227,7 @@ const Navbar = () => {
                       <span className="font-bold text-sage-800">
                         {user.name || "User"}
                       </span>
-                      <span className="text-sm text-sage-800/60 capitalize">
+                      <span className="text-sm text-sage-800/80 capitalize">
                         {user.role || "Donor"}
                       </span>
                     </div>
