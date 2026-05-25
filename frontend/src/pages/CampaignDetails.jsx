@@ -404,13 +404,13 @@ const CampaignDetails = () => {
                     )}
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] uppercase tracking-widest text-earth-800/60 font-bold">Organizer</span>
+                    <span className="text-[10px] uppercase tracking-widest text-earth-800/80 font-bold">Organizer</span>
                     <span className="text-sm font-bold text-sage-800">{campaign.creatorId?.name || 'UnityGive Team'}</span>
                   </div>
                 </div>
                 <Separator orientation="vertical" className="h-10 bg-sage-800/10" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] uppercase tracking-widest text-earth-800/60 font-bold">Status</span>
+                  <span className="text-[10px] uppercase tracking-widest text-earth-800/80 font-bold">Status</span>
                   <Badge variant="outline" className="text-xs border-sage-800/20 text-sage-800 capitalize">
                     {campaign.status?.toLowerCase() || 'active'}
                   </Badge>
@@ -473,7 +473,7 @@ const CampaignDetails = () => {
                             </div>
                             <div className="flex flex-col gap-1">
                               <h4 className="text-xl font-light text-sage-800">{milestone.title || `Phase ${index + 1}`}</h4>
-                              <p className="text-sm font-extralight text-earth-900/70">
+                              <p className="text-sm font-extralight text-earth-900/90">
                                 Target: {formatter.format(parseFloat(milestone.amount))} ETH
                               </p>
                               {onChain && (
@@ -508,7 +508,7 @@ const CampaignDetails = () => {
                                 Awaiting Votes
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="border-sage-800/20 text-sage-800/60 px-4 py-2 rounded-full">
+                              <Badge variant="outline" className="border-sage-800/20 text-sage-800/80 px-4 py-2 rounded-full">
                                 Pending Proof
                               </Badge>
                             )}
@@ -589,7 +589,7 @@ const CampaignDetails = () => {
                       <span className="text-2xl ml-2 font-nunito uppercase tracking-tighter opacity-60">ETH</span>
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-sm font-light text-sage-800/70">
+                  <div className="flex justify-between items-center text-sm font-light text-sage-800/90">
                     <span>raised of {formatter.format(targetEth)} ETH goal</span>
                     <span className="tabular-nums">{Math.round(progress)}%</span>
                   </div>
@@ -624,7 +624,7 @@ const CampaignDetails = () => {
                     </Button>
                   )}
 
-                  <p className="text-center text-[12px] font-extralight text-earth-900/60 px-4">
+                  <p className="text-center text-[12px] font-extralight text-earth-900/80 px-4">
                     By donating, you agree to our terms. Funds are held in a transparent smart contract and released only upon verified impact milestones.
                   </p>
                 </div>
@@ -636,14 +636,14 @@ const CampaignDetails = () => {
                   <span className="material-symbols-outlined text-earth-500">verified_user</span>
                   <div className="flex flex-col gap-1">
                     <h5 className="text-sm font-bold text-sage-800">Blockchain Secured</h5>
-                    <p className="text-xs font-extralight text-earth-900/70">Your donation is tracked and protected by Ethereum smart contracts.</p>
+                    <p className="text-xs font-extralight text-earth-900/90">Your donation is tracked and protected by Ethereum smart contracts.</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <span className="material-symbols-outlined text-earth-500">assignment_turned_in</span>
                   <div className="flex flex-col gap-1">
                     <h5 className="text-sm font-bold text-sage-800">Milestone Based</h5>
-                    <p className="text-xs font-extralight text-earth-900/70">Funds are released only when our team provides immutable proof of impact.</p>
+                    <p className="text-xs font-extralight text-earth-900/90">Funds are released only when our team provides immutable proof of impact.</p>
                   </div>
                 </div>
               </div>

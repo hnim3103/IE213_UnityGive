@@ -73,7 +73,7 @@ const ActiveCampaigns = () => {
                 </div>
               ))
             ) : (
-              <div className="col-span-full py-24 text-center font-nunito font-extralight text-earth-800/60 bg-white/30 rounded-[64px] border-2 border-dashed border-sage-800/10 w-full">
+              <div className="col-span-full py-24 text-center font-nunito font-extralight text-earth-800/80 bg-white/30 rounded-[64px] border-2 border-dashed border-sage-800/10 w-full">
                 <span className="material-symbols-outlined text-4xl mb-4 block opacity-40" aria-hidden="true">eco</span>
                 Currently, there are no active campaigns. Check back soon!
               </div>

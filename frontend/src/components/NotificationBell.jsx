@@ -47,6 +47,7 @@ const NotificationBell = () => {
   return (
     <div className="relative">
       <button 
+        aria-label="Notifications"
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 rounded-full hover:bg-sage-800/5 transition-colors focus:outline-none"
       >
@@ -65,7 +66,7 @@ const NotificationBell = () => {
           </div>
           
           {notifications.length === 0 ? (
-            <div className="p-4 text-center text-sm text-sage-800/60">
+            <div className="p-4 text-center text-sm text-sage-800/80">
               No notifications yet.
             </div>
           ) : (

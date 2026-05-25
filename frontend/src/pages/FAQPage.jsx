@@ -92,7 +92,7 @@ const FAQPage = () => {
             Frequently Asked <br /> 
             <span className="italic font-light text-earth-500 text-4xl md:text-6xl">Questions</span>
           </h1>
-          <p className="text-xl text-earth-900/60 font-light max-w-2xl mx-auto">
+          <p className="text-xl text-earth-900/80 font-light max-w-2xl mx-auto">
             Everything you need to know about our transparent, milestone-based giving platform.
           </p>
         </div>
@@ -103,7 +103,7 @@ const FAQPage = () => {
         <div className="max-w-3xl mx-auto space-y-16">
           {faqData.map((category, catIndex) => (
             <div key={catIndex} className="space-y-6">
-              <h2 className="text-[14px] font-bold font-nunito uppercase tracking-[0.2em] text-earth-800/60 pl-4 border-b border-earth-800/10 pb-4">
+              <h2 className="text-[14px] font-bold font-nunito uppercase tracking-[0.2em] text-earth-800/80 pl-4 border-b border-earth-800/10 pb-4">
                 {category.category}
               </h2>
               <div className="space-y-2">
@@ -130,7 +130,7 @@ const FAQPage = () => {
         <div className="max-w-2xl mx-auto bg-[#f1eee2] rounded-[48px] p-12 shadow-sm border border-white/50 space-y-6 relative overflow-hidden group hover:shadow-xl hover:shadow-sage-800/5 transition-all duration-500">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
           <h3 className="text-3xl font-fraunces text-sage-900 relative z-10">Still have questions?</h3>
-          <p className="text-earth-900/60 font-light relative z-10">Our team is ready to help you navigate your giving journey.</p>
+          <p className="text-earth-900/80 font-light relative z-10">Our team is ready to help you navigate your giving journey.</p>
           <button className="mt-4 px-8 py-4 bg-sage-800 text-white rounded-full font-bold shadow-xl shadow-sage-800/20 hover:bg-sage-900 transition-all hover:scale-105 relative z-10 flex items-center gap-3 mx-auto">
             Contact Support
             <span className="material-symbols-outlined text-sm">open_in_new</span>

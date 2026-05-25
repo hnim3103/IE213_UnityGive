@@ -252,7 +252,7 @@ const EditCampaign = () => {
                   value={formData.title}
                   onChange={handleInputChange}
                   placeholder="e.g. Clean Water for Africa"
-                  className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                   required
                 />
               </div>
@@ -265,7 +265,7 @@ const EditCampaign = () => {
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
-                  className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors appearance-none"
+                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors appearance-none"
                 >
                   {Object.keys(CAMPAIGN_TYPES).map((key) => (
                     <option key={key} value={key}>
@@ -285,7 +285,7 @@ const EditCampaign = () => {
                   onChange={handleInputChange}
                   rows="4"
                   placeholder="Share the story and impact of this campaign…"
-                  className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-[32px] focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20 resize-none"
+                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-[32px] focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20 resize-none"
                   required
                 ></textarea>
               </div>
@@ -301,7 +301,7 @@ const EditCampaign = () => {
                     value={formData.image}
                     onChange={handleInputChange}
                     placeholder="https://images.unsplash.com/…"
-                    className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                    className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
                     required
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-earth-900/20">
@@ -318,7 +318,7 @@ const EditCampaign = () => {
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
-                  className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors appearance-none"
+                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors appearance-none"
                 >
                   <option value="PENDING">Pending</option>
                   <option value="ACTIVE">Active</option>
@@ -351,7 +351,7 @@ const EditCampaign = () => {
                   value={formData.totalGoalAmount}
                   onChange={handleInputChange}
                   placeholder="1000000000000000000"
-                  className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
+                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
                   required
                 />
               </div>
@@ -366,7 +366,7 @@ const EditCampaign = () => {
                   value={formData.softCapAmount}
                   onChange={handleInputChange}
                   placeholder="500000000000000000"
-                  className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
+                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
                   required
                 />
               </div>
@@ -380,7 +380,7 @@ const EditCampaign = () => {
                   name="startDate"
                   value={formData.startDate}
                   disabled
-                  className="w-full px-6 py-4 bg-sage-50/30 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors opacity-60 cursor-not-allowed"
+                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/30 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors opacity-60 cursor-not-allowed"
                 />
               </div>
 
@@ -393,7 +393,7 @@ const EditCampaign = () => {
                   name="endDate"
                   value={formData.endDate}
                   onChange={handleInputChange}
-                  className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
+                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
                 />
               </div>
             </div>
@@ -421,7 +421,7 @@ const EditCampaign = () => {
                       <p className="font-bold text-sage-900">
                         {milestone.title}
                       </p>
-                      <p className="text-sm text-earth-900/60">
+                      <p className="text-sm text-earth-900/80">
                         {milestone.amount} Wei
                       </p>
                     </div>
@@ -446,7 +446,7 @@ const EditCampaign = () => {
                 onChange={(e) =>
                   setNewMilestone({ ...newMilestone, title: e.target.value })
                 }
-                className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
               />
               <input
                 type="number"
@@ -455,7 +455,7 @@ const EditCampaign = () => {
                 onChange={(e) =>
                   setNewMilestone({ ...newMilestone, amount: e.target.value })
                 }
-                className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
               />
               <Button
                 type="button"
@@ -507,7 +507,7 @@ const EditCampaign = () => {
                 placeholder="Ethereum address (0x...)"
                 value={newCouncilMember}
                 onChange={(e) => setNewCouncilMember(e.target.value)}
-                className="w-full px-6 py-4 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
+                className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors placeholder:text-earth-900/20"
               />
               <Button
                 type="button"

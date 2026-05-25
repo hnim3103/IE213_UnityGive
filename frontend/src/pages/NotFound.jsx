@@ -19,7 +19,7 @@ const NotFound = () => {
             Oops! Page Not Found
           </h1>
 
-          <p className="text-lg md:text-xl text-sage-800/70 font-nunito mb-10 max-w-lg mx-auto">
+          <p className="text-lg md:text-xl text-sage-800/90 font-nunito mb-10 max-w-lg mx-auto">
             It seems like you've wandered into uncharted territory. The page you're looking for might have been moved or doesn't exist.
           </p>
 

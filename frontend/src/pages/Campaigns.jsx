@@ -72,7 +72,7 @@ const Campaigns = () => {
           <div className="flex flex-col gap-8 flex-grow">
             {/* Project Type */}
             <div className="flex flex-col gap-4">
-              <span className="text-[11px] font-bold uppercase tracking-[2px] text-earth-800/70 font-nunito">
+              <span className="text-[11px] font-bold uppercase tracking-[2px] text-earth-800/90 font-nunito">
                 Campaign Type
               </span>
               <div className="flex flex-wrap gap-2">
@@ -93,7 +93,7 @@ const Campaigns = () => {
 
             {/* Current Status */}
             <div className="flex flex-col gap-4">
-              <span className="text-[11px] font-bold uppercase tracking-[2px] text-earth-800/70 font-nunito">
+              <span className="text-[11px] font-bold uppercase tracking-[2px] text-earth-800/90 font-nunito">
                 Current Status
               </span>
               <div className="flex flex-wrap gap-2">
@@ -147,7 +147,7 @@ const Campaigns = () => {
               ))}
             </div>
           ) : (
-            <div className="py-32 text-center font-nunito font-extralight text-earth-800/60 bg-white/30 rounded-[64px] border-2 border-dashed border-sage-800/10 max-w-4xl mx-auto">
+            <div className="py-32 text-center font-nunito font-extralight text-earth-800/80 bg-white/30 rounded-[64px] border-2 border-dashed border-sage-800/10 max-w-4xl mx-auto">
               <span className="material-symbols-outlined text-5xl mb-6 block opacity-40">eco</span>
               <h3 className="text-2xl font-fraunces mb-2">No campaigns found</h3>
               <p>Try adjusting your filters or search keywords to find what you're looking for.</p>

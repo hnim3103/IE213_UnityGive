@@ -62,7 +62,7 @@ const AdminVerifications = () => {
           <h1 className="text-4xl font-fraunces text-sage-900 mt-1">
             Organization <span className="italic font-light text-earth-500">Verifications</span>
           </h1>
-          <p className="text-earth-900/60 font-light mt-1 text-sm">Review and approve KYC submissions from organizations</p>
+          <p className="text-earth-900/80 font-light mt-1 text-sm">Review and approve KYC submissions from organizations</p>
         </div>
         <div className="flex items-center gap-2 bg-white/60 backdrop-blur-xl border border-white px-5 py-3 rounded-2xl shadow-sm">
           <ShieldCheck size={16} className="text-earth-500" />
@@ -92,7 +92,7 @@ const AdminVerifications = () => {
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-bold text-sage-900 text-lg">{org.name}</h3>
-                  <p className="text-sm text-earth-900/60 font-light truncate">{org.email}</p>
+                  <p className="text-sm text-earth-900/80 font-light truncate">{org.email}</p>
                   <span className="mt-2 inline-block px-3 py-0.5 bg-amber-50 text-amber-700 text-[10px] font-bold uppercase tracking-widest rounded-full">
                     Pending KYC
                   </span>
