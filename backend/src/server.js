@@ -7,6 +7,7 @@ import donationRoute from "./routes/donationsRouters.js";
 import authRoute from "./routes/authRouters.js";
 import usersRoute from "./routes/userRouters.js";
 import commentRoute from "./routes/commentRouters.js";
+import notificationRoute from "./routes/notificationRouters.js";
 import { connectDB } from "./config/db.js";
 import { initBlockchainListener } from "./services/blockchainService.js";
 import cors from "cors";
@@ -31,6 +32,7 @@ app.use("/api/donations", donationRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/comments", commentRoute);
 app.use("/api/users", usersRoute);
+app.use("/api/notifications", notificationRoute);
 
 if (process.env.NODE_ENV !== "test") {
   connectDB().then(() => {

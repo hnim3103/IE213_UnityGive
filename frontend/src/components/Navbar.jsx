@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Menu, X } from "lucide-react";
+import NotificationBell from "./NotificationBell";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -89,7 +90,9 @@ const Navbar = () => {
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-4">
             {user ? (
-              <div className="relative">
+              <div className="flex items-center gap-4">
+                <NotificationBell />
+                <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   aria-haspopup="true"
@@ -147,6 +150,7 @@ const Navbar = () => {
                     </button>
                   </div>
                 )}
+              </div>
               </div>
             ) : (
               <>

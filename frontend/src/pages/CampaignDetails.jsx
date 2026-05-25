@@ -347,7 +347,30 @@ const CampaignDetails = () => {
 
   return (
     <div className="selection:bg-sage-800 selection:text-white font-nunito">
-      <main className="max-w-7xl mx-auto px-8 py-20">
+      
+      {/* Top Donor Notification Banner */}
+      {isHybridCouncil && onChainMilestones.some((m, i) => m.ipfsEvidence && !m.isApproved && !hasVotedMap[i]) && (
+        <div className="bg-sage-800 text-white px-8 py-4 sticky top-20 z-40 flex justify-between items-center shadow-lg animate-in slide-in-from-top">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-2xl animate-pulse">campaign</span>
+            <div>
+              <h4 className="font-bold">Action Required: Milestone Approval</h4>
+              <p className="text-xs font-light text-sage-100">You are a Top Donor. A milestone has pending proof of impact waiting for your review and vote.</p>
+            </div>
+          </div>
+          <Button 
+            variant="outline" 
+            className="border-white text-sage-800 bg-white hover:bg-sage-100 font-bold rounded-full"
+            onClick={() => {
+              window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }}
+          >
+            Review Evidence ↓
+          </Button>
+        </div>
+      )}
+
+      <main className="max-w-7xl mx-auto px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
 
           {/* Left Column: Image and Description */}
