@@ -401,7 +401,7 @@ const CampaignDetails = () => {
                 {campaign.title}
               </h1>
 
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-6 flex-wrap">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-sage-200 border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
                     {campaign.creatorId?.avatar ? (
@@ -415,12 +415,22 @@ const CampaignDetails = () => {
                     <span className="text-sm font-bold text-sage-800">{campaign.creatorId?.name || 'UnityGive Team'}</span>
                   </div>
                 </div>
-                <Separator orientation="vertical" className="h-10 bg-sage-800/10" />
+                <Separator orientation="vertical" className="h-10 bg-sage-800/10 hidden sm:block" />
                 <div className="flex flex-col">
                   <span className="text-[10px] uppercase tracking-widest text-earth-800/80 font-bold">Status</span>
-                  <Badge variant="outline" className="text-xs border-sage-800/20 text-sage-800 capitalize">
+                  <Badge variant="outline" className="text-xs border-sage-800/20 text-sage-800 capitalize mt-1">
                     {campaign.status?.toLowerCase() || 'active'}
                   </Badge>
+                </div>
+                <Separator orientation="vertical" className="h-10 bg-sage-800/10 hidden sm:block" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-widest text-earth-800/80 font-bold">Timeline</span>
+                  <div className="flex items-center gap-2 text-sm font-bold text-sage-800 mt-1">
+                    <span className="material-symbols-outlined text-[16px] text-earth-500">calendar_month</span>
+                    <span>{campaign.startDate ? new Date(campaign.startDate).toLocaleDateString() : 'TBA'}</span>
+                    <span className="text-earth-500 font-normal mx-1">→</span>
+                    <span>{campaign.endDate ? new Date(campaign.endDate).toLocaleDateString() : 'TBA'}</span>
+                  </div>
                 </div>
               </div>
 
