@@ -157,6 +157,23 @@ const EditCampaign = () => {
       return;
     }
 
+    if (formData.startDate && formData.endDate) {
+      const startTs = new Date(formData.startDate).getTime();
+      const endTs = new Date(formData.endDate).getTime();
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const todayTs = today.getTime();
+      
+      if (endTs <= startTs) {
+        toast.error("End date must be after the start date.");
+        return;
+      }
+      if (endTs <= todayTs) {
+        toast.error("End date must be in the future.");
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       const token = localStorage.getItem("token");

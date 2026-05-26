@@ -185,13 +185,20 @@ const CreateCampaign = () => {
 
     const startTs = startDate.getTime();
     const endTs = endDate.getTime();
-    const nowTs = Date.now();
+    // Use the start of today for checking if a date is in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTs = today.getTime();
 
+    if (startTs < todayTs) {
+      toast.error("Start date cannot be in the past.");
+      return;
+    }
     if (endTs <= startTs) {
       toast.error("End date must be after the start date.");
       return;
     }
-    if (endTs <= nowTs) {
+    if (endTs <= todayTs) {
       toast.error("End date must be in the future.");
       return;
     }
