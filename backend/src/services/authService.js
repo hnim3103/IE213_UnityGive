@@ -76,6 +76,7 @@ export async function loginService(userData) {
       name: user.name,
       email: user.email,
       role: user.role,
+      walletAddress: user.walletAddress,
       isVerified: user.isVerified,
     },
   };
