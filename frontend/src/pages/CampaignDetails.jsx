@@ -427,9 +427,9 @@ const CampaignDetails = () => {
                   <span className="text-[10px] uppercase tracking-widest text-earth-800/80 font-bold">Timeline</span>
                   <div className="flex items-center gap-2 text-sm font-bold text-sage-800 mt-1">
                     <span className="material-symbols-outlined text-[16px] text-earth-500">calendar_month</span>
-                    <span>{campaign.startDate ? new Date(campaign.startDate).toLocaleDateString() : 'TBA'}</span>
+                    <span>{campaign.startDate ? new Date(campaign.startDate).toLocaleDateString('en-GB') : 'TBA'}</span>
                     <span className="text-earth-500 font-normal mx-1">→</span>
-                    <span>{campaign.endDate ? new Date(campaign.endDate).toLocaleDateString() : 'TBA'}</span>
+                    <span>{campaign.endDate ? new Date(campaign.endDate).toLocaleDateString('en-GB') : 'TBA'}</span>
                   </div>
                 </div>
               </div>

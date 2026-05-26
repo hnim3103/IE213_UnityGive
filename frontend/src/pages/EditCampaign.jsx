@@ -71,9 +71,9 @@ const EditCampaign = () => {
             category: campaign.category || "OTHER",
             image: campaign.image || "",
             startDate: campaign.startDate
-              ? campaign.startDate.split("T")[0]
+              ? new Date(campaign.startDate).toLocaleDateString('en-GB')
               : "",
-            endDate: campaign.endDate ? campaign.endDate.split("T")[0] : "",
+            endDate: campaign.endDate ? new Date(campaign.endDate).toLocaleDateString('en-GB') : "",
             requiredVotes: campaign.requiredVotes || 1,
             councilMembers: campaign.councilMembers || [],
             milestones: campaign.milestones || [],
@@ -94,6 +94,25 @@ const EditCampaign = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Parse "DD/MM/YYYY" → Date object (returns null on invalid input)
+  const parseDMY = (str) => {
+    if (!str || str.length !== 10) return null;
+    const [dd, mm, yyyy] = str.split('/');
+    if (!dd || !mm || !yyyy) return null;
+    const d = new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
+  // Auto-insert slashes as user types: "1801" → "18/01/"
+  const handleDateInput = (e) => {
+    const { name } = e.target;
+    let raw = e.target.value.replace(/\D/g, '').slice(0, 8);
+    let formatted = raw;
+    if (raw.length > 2) formatted = raw.slice(0, 2) + '/' + raw.slice(2);
+    if (raw.length > 4) formatted = raw.slice(0, 2) + '/' + raw.slice(2, 4) + '/' + raw.slice(4);
+    setFormData(prev => ({ ...prev, [name]: formatted }));
   };
 
   const addMilestone = () => {
@@ -158,8 +177,16 @@ const EditCampaign = () => {
     }
 
     if (formData.startDate && formData.endDate) {
-      const startTs = new Date(formData.startDate).getTime();
-      const endTs = new Date(formData.endDate).getTime();
+      const parsedStart = parseDMY(formData.startDate);
+      const parsedEnd = parseDMY(formData.endDate);
+      
+      if (!parsedStart || !parsedEnd) {
+        toast.error("Dates must be in DD/MM/YYYY format.");
+        return;
+      }
+
+      const startTs = parsedStart.getTime();
+      const endTs = parsedEnd.getTime();
       const today = new Date();
       today.setHours(0,0,0,0);
       const todayTs = today.getTime();
@@ -177,6 +204,11 @@ const EditCampaign = () => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem("token");
+      
+      const payload = { ...formData };
+      if (payload.startDate) payload.startDate = parseDMY(payload.startDate)?.toISOString();
+      if (payload.endDate) payload.endDate = parseDMY(payload.endDate)?.toISOString();
+      
       const response = await fetch(
         `${API_BASE}/api/campaigns/${id}`,
         {
@@ -185,7 +217,7 @@ const EditCampaign = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(payload),
         },
       );
 
@@ -392,26 +424,36 @@ const EditCampaign = () => {
                 <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">
                   Start Date
                 </label>
-                <input
-                  type="date"
-                  name="startDate"
-                  value={formData.startDate}
-                  disabled
-                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/30 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors opacity-60 cursor-not-allowed"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="startDate"
+                    value={formData.startDate}
+                    disabled
+                    placeholder="DD/MM/YYYY"
+                    maxLength={10}
+                    className="w-full px-6 py-4 text-sage-900 bg-sage-50/30 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors opacity-60 cursor-not-allowed"
+                  />
+                  <Calendar size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-earth-900/20 pointer-events-none" />
+                </div>
               </div>
 
               <div className="space-y-2 flex flex-col">
                 <label className="text-[11px] uppercase tracking-widest text-earth-900/50 font-extrabold px-2">
                   End Date
                 </label>
-                <input
-                  type="date"
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleInputChange}
-                  className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="endDate"
+                    value={formData.endDate}
+                    onChange={handleDateInput}
+                    placeholder="DD/MM/YYYY"
+                    maxLength={10}
+                    className="w-full px-6 py-4 text-sage-900 bg-sage-50/50 border border-sage-200 rounded-3xl focus:outline-none focus:border-sage-800 transition-colors"
+                  />
+                  <Calendar size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-earth-900/20 pointer-events-none" />
+                </div>
               </div>
             </div>
           </section>
